@@ -93,6 +93,7 @@ export interface DepositRecord {
   service: string;
   contact: string;
   dimensions?: string;
+  photos?: string[];
   photo?: string | null;
   createdAt: string;
 }

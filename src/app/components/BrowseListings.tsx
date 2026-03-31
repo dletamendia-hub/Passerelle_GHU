@@ -153,7 +153,7 @@ export default function BrowseListings() {
       className="group"
     >
       <div className="bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-shadow border border-[#E5E5E4] hover:border-[#3B82F6]">
-        <div className="relative h-40 overflow-hidden bg-[#F4F4F5]">
+        <div className="relative h-28 sm:h-40 overflow-hidden bg-[#F4F4F5]">
           <img
             src={listing.photos[0]}
             alt={listing.title}
@@ -162,41 +162,41 @@ export default function BrowseListings() {
           <button
             type="button"
             onClick={(event) => handleFavoriteClick(event, listing.id)}
-            className={`absolute right-3 top-3 inline-flex size-10 items-center justify-center rounded-full border transition-all ${
+            className={`absolute right-2 top-2 inline-flex size-8 sm:right-3 sm:top-3 sm:size-10 items-center justify-center rounded-full border transition-all ${
               isFavorite(listing.id)
                 ? 'border-[#FBCFE8] bg-[#FFF1F5] text-[#E11D48]'
                 : 'border-white/80 bg-white/90 text-[#71717A] hover:text-[#E11D48]'
             }`}
             aria-label={isFavorite(listing.id) ? 'Retirer des favoris' : 'Ajouter aux favoris'}
           >
-            <Heart className={`size-4 ${isFavorite(listing.id) ? 'fill-current' : ''}`} />
+            <Heart className={`size-3.5 sm:size-4 ${isFavorite(listing.id) ? 'fill-current' : ''}`} />
           </button>
         </div>
-        <div className="p-5">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <span className="inline-flex items-center rounded-full bg-[#F4F4F5] px-2.5 py-1 text-[10px] font-semibold text-[#0F172A] whitespace-nowrap">
+        <div className="p-3 sm:p-5">
+          <div className="flex items-center justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
+            <span className="inline-flex items-center rounded-full bg-[#F4F4F5] px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-semibold text-[#0F172A] whitespace-nowrap">
               {categoryBadgeLabels[listing.category]}
             </span>
-            <span className="text-xs text-[#71717A]">
+            <span className="text-[10px] sm:text-xs text-[#71717A]">
               {new Date(listing.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
             </span>
           </div>
-          <h3 className="font-bold text-[#0F172A] mb-2 line-clamp-1 text-[17px]">
+          <h3 className="font-bold text-[#0F172A] mb-1.5 sm:mb-2 line-clamp-2 text-[14px] sm:text-[17px] leading-tight">
             {listing.title}
           </h3>
-          <div className="space-y-2 text-sm">
+          <div className="space-y-1.5 sm:space-y-2 text-sm">
             <div className="flex items-center gap-1.5 text-[#52525B]">
-              <Building2 className="size-4 text-[#71717A]" />
-              <span className="truncate text-xs">{listing.site || listing.author?.site}</span>
+              <Building2 className="size-3.5 sm:size-4 text-[#71717A]" />
+              <span className="truncate text-[11px] sm:text-xs">{listing.site || listing.author?.site}</span>
             </div>
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-2 sm:gap-3">
               <div className="flex items-center gap-1.5 text-[#71717A] min-w-0">
-                <MapPin className="size-4" />
-                <span className="truncate text-xs">{listing.location}</span>
+                <MapPin className="size-3.5 sm:size-4" />
+                <span className="truncate text-[11px] sm:text-xs">{listing.location}</span>
               </div>
               <div className="flex items-center gap-1.5 text-[#0F172A] font-semibold flex-shrink-0">
-                <Package className="size-4" />
-                <span className="text-xs">{listing.quantity}</span>
+                <Package className="size-3.5 sm:size-4" />
+                <span className="text-[11px] sm:text-xs">{listing.quantity}</span>
               </div>
             </div>
           </div>
@@ -333,7 +333,7 @@ export default function BrowseListings() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {listings.map(renderListingCard)}
       </div>
     </div>

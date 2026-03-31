@@ -22,16 +22,28 @@ export default function CreateListing() {
     contact: currentUser.email,
   });
 
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [tipsOpen, setTipsOpen] = useState(false);
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setPhotoPreview(reader.result as string);
-      reader.readAsDataURL(file);
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) {
+      return;
     }
+
+    const nextPhotos = await Promise.all(
+      files.map(
+        (file) =>
+          new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          }),
+      ),
+    );
+
+    setPhotoPreviews((currentPhotos) => [...currentPhotos, ...nextPhotos].slice(0, 6));
+    e.target.value = '';
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -50,7 +62,8 @@ export default function CreateListing() {
       service: formData.service,
       contact: formData.contact,
       dimensions: formData.dimensions || undefined,
-      photo: photoPreview,
+      photos: photoPreviews,
+      photo: photoPreviews[0] ?? null,
       createdAt: new Date().toISOString(),
     };
 
@@ -65,7 +78,7 @@ export default function CreateListing() {
   };
 
   const isFormValid = formData.title && formData.category && formData.condition &&
-    formData.description && formData.location && photoPreview;
+    formData.description && formData.location && photoPreviews.length > 0;
 
   // ── Shared form fields ──────────────────────────────────────────────
   const formFields = (
@@ -73,29 +86,50 @@ export default function CreateListing() {
       {/* Photo upload */}
       <div>
         <label className="block text-sm font-medium text-[#0F172A] mb-2">
-          Photo principale *
+          Photos *
         </label>
-        {!photoPreview ? (
+        {photoPreviews.length === 0 ? (
           <label className="block">
             <div className="bg-white border-2 border-dashed border-[#E5E5E4] rounded-xl p-10 text-center cursor-pointer hover:border-[#3B82F6] hover:bg-[#F4F4F5] transition-colors">
               <Upload className="size-8 text-[#71717A] mx-auto mb-3" />
               <div className="text-sm font-medium text-[#0F172A] mb-1">
-                Cliquez pour ajouter une photo
+                Cliquez pour ajouter une ou plusieurs photos
               </div>
-              <div className="text-xs text-[#71717A]">PNG, JPG jusqu'à 10 Mo</div>
+              <div className="text-xs text-[#71717A]">PNG, JPG jusqu'à 10 Mo, 6 photos max</div>
             </div>
-            <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+            <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
           </label>
         ) : (
-          <div className="relative rounded-xl overflow-hidden">
-            <img src={photoPreview} alt="Aperçu" className="w-full aspect-video object-cover" />
-            <button
-              type="button"
-              onClick={() => setPhotoPreview(null)}
-              className="absolute top-4 right-4 p-2 bg-white rounded-lg hover:bg-[#F4F4F5] transition-colors"
-            >
-              <X className="size-4 text-[#71717A]" />
-            </button>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {photoPreviews.map((photo, index) => (
+                <div key={`${photo}-${index}`} className="relative overflow-hidden rounded-xl border border-[#E5E5E4] bg-white">
+                  <img src={photo} alt={`Aperçu ${index + 1}`} className="aspect-[4/3] w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setPhotoPreviews((currentPhotos) => currentPhotos.filter((_, photoIndex) => photoIndex !== index))}
+                    className="absolute right-2 top-2 inline-flex size-8 items-center justify-center rounded-lg bg-white/95 hover:bg-[#F4F4F5] transition-colors"
+                    aria-label={`Retirer la photo ${index + 1}`}
+                  >
+                    <X className="size-4 text-[#71717A]" />
+                  </button>
+                  {index === 0 && (
+                    <span className="absolute bottom-2 left-2 rounded-full bg-[#0F172A] px-2 py-1 text-[10px] font-medium text-white">
+                      Couverture
+                    </span>
+                  )}
+                </div>
+              ))}
+
+              {photoPreviews.length < 6 && (
+                <label className="flex aspect-[4/3] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#E5E5E4] bg-white text-center transition-colors hover:border-[#3B82F6] hover:bg-[#F4F4F5]">
+                  <Upload className="mb-2 size-5 text-[#71717A]" />
+                  <span className="px-3 text-xs font-medium text-[#0F172A]">Ajouter des photos</span>
+                  <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
+                </label>
+              )}
+            </div>
+            <p className="text-xs text-[#71717A]">La première photo sera utilisée comme image principale de l’annonce.</p>
           </div>
         )}
       </div>

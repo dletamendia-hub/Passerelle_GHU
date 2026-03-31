@@ -26,6 +26,7 @@ export default function MySpace() {
   const myDeposits = deposits.filter((deposit) => deposit.userId === currentUser.id);
   const transferDeposits = myDeposits.filter((deposit) => deposit.mode === 'donation');
   const brokenDeposits = myDeposits.filter((deposit) => deposit.mode === 'broken');
+  const getDepositPhoto = (deposit: (typeof myDeposits)[number]) => deposit.photos?.[0] ?? deposit.photo ?? null;
 
   useEffect(() => {
     if (requestedTab === 'favorites' || requestedTab === 'requests' || requestedTab === 'deposits') {
@@ -187,8 +188,8 @@ export default function MySpace() {
                           className="flex-shrink-0 rounded-lg overflow-hidden bg-[#F4F4F5]"
                           style={{ width: 'clamp(68px, 14vw, 120px)', aspectRatio: '4/3' }}
                         >
-                          {deposit.photo ? (
-                            <img src={deposit.photo} alt={deposit.title} className="w-full h-full object-cover" />
+                          {getDepositPhoto(deposit) ? (
+                            <img src={getDepositPhoto(deposit) ?? ''} alt={deposit.title} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
                               <Package className="size-6 text-[#71717A]" />
@@ -264,8 +265,8 @@ export default function MySpace() {
                           className="flex-shrink-0 rounded-lg overflow-hidden bg-[#F4F4F5]"
                           style={{ width: 'clamp(68px, 14vw, 120px)', aspectRatio: '4/3' }}
                         >
-                          {deposit.photo ? (
-                            <img src={deposit.photo} alt={deposit.title} className="w-full h-full object-cover" />
+                          {getDepositPhoto(deposit) ? (
+                            <img src={getDepositPhoto(deposit) ?? ''} alt={deposit.title} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
                               <Wrench className="size-6 text-[#71717A]" />

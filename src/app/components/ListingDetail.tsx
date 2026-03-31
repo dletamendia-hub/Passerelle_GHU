@@ -1,5 +1,5 @@
 import { useParams, Link, useLocation, useNavigate } from 'react-router';
-import { MapPin, Package, Calendar, User as UserIcon, Phone, Heart, Copy, ArrowLeft, Building2 } from 'lucide-react';
+import { MapPin, Package, Calendar, User as UserIcon, Phone, Heart, Copy, ArrowLeft, Building2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { mockListings, currentUser } from '../mock-data';
 import { categoryBadgeLabels, categoryLabels, conditionLabels } from '../types';
 import StatusBadge from './StatusBadge';
@@ -13,6 +13,7 @@ export default function ListingDetail() {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const { isFavorite, toggleFavorite } = useFavorites();
   const [contactCopied, setContactCopied] = useState(false);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const copyFeedbackTimeoutRef = useRef<number | null>(null);
   const [requestData, setRequestData] = useState({
     destinationService: currentUser.service,
@@ -23,7 +24,7 @@ export default function ListingDetail() {
 
   if (!listing) {
     return (
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 pt-24 sm:pt-32 pb-12">
+      <div className="max-w-[1040px] mx-auto px-4 sm:px-8 pt-24 sm:pt-32 pb-12">
         <div className="text-center py-16">
           <h2 className="text-2xl font-semibold text-[#0F172A] mb-2">Annonce introuvable</h2>
           <p className="text-[#71717A] mb-6">Cette annonce n'existe pas ou a été supprimée.</p>
@@ -39,6 +40,7 @@ export default function ListingDetail() {
   const favorite = isFavorite(listing.id);
   const contactEmail = listing.contact.split(' - ')[0];
   const contactDetails = listing.contact.split(' - ').slice(1).join(' - ');
+  const listingPhotos = listing.photos.length > 0 ? listing.photos : [''];
   const similarListings = mockListings
     .filter((item) => item.id !== listing.id && item.status === 'published' && item.category === listing.category)
     .slice(0, 4);
@@ -72,6 +74,10 @@ export default function ListingDetail() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
+  }, [id]);
+
+  useEffect(() => {
+    setSelectedPhotoIndex(0);
   }, [id]);
 
   const handleBack = () => {
@@ -112,7 +118,7 @@ export default function ListingDetail() {
 
   return (
     <>
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 pt-24 sm:pt-32 pb-24 sm:pb-12">
+      <div className="max-w-[1040px] mx-auto px-4 sm:px-8 pt-24 sm:pt-32 pb-24 sm:pb-12">
 
         {/* ── Layout : 1 col mobile / 12 col desktop ── */}
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 sm:gap-12">
@@ -122,10 +128,30 @@ export default function ListingDetail() {
             <div className="sm:sticky sm:top-28">
               <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#F4F4F5] mb-4">
                 <img
-                  src={listing.photos[0]}
+                  src={listingPhotos[selectedPhotoIndex]}
                   alt={listing.title}
                   className="w-full h-full object-cover"
                 />
+                {listingPhotos.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPhotoIndex((currentIndex) => (currentIndex === 0 ? listingPhotos.length - 1 : currentIndex - 1))}
+                      className="absolute left-4 bottom-4 inline-flex size-10 items-center justify-center rounded-full border border-white/80 bg-white/92 text-[#0F172A] shadow-sm transition-colors hover:bg-white"
+                      aria-label="Photo précédente"
+                    >
+                      <ChevronLeft className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPhotoIndex((currentIndex) => (currentIndex === listingPhotos.length - 1 ? 0 : currentIndex + 1))}
+                      className="absolute bottom-4 right-4 inline-flex size-10 items-center justify-center rounded-full border border-white/80 bg-white/92 text-[#0F172A] shadow-sm transition-colors hover:bg-white"
+                      aria-label="Photo suivante"
+                    >
+                      <ChevronRight className="size-4" />
+                    </button>
+                  </>
+                )}
                 <button
                   type="button"
                   onClick={handleBack}
@@ -135,6 +161,26 @@ export default function ListingDetail() {
                   Retour
                 </button>
               </div>
+
+              {listingPhotos.length > 1 && (
+                <div className="mb-4 grid grid-cols-4 gap-2 sm:grid-cols-5">
+                  {listingPhotos.map((photo, index) => (
+                    <button
+                      key={`${photo}-${index}`}
+                      type="button"
+                      onClick={() => setSelectedPhotoIndex(index)}
+                      className={`overflow-hidden rounded-xl border transition-all ${
+                        selectedPhotoIndex === index
+                          ? 'border-[#0F172A] ring-2 ring-[#0F172A]/10'
+                          : 'border-[#E5E5E4] hover:border-[#3B82F6]'
+                      }`}
+                      aria-label={`Voir la photo ${index + 1}`}
+                    >
+                      <img src={photo} alt={`${listing.title} ${index + 1}`} className="aspect-[4/3] w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Key info — visible below image on desktop */}
               <div className="hidden sm:block">
@@ -286,7 +332,7 @@ export default function ListingDetail() {
                 <p className="text-sm text-[#71717A] mt-1">D’autres biens disponibles dans la même catégorie.</p>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {similarListings.map((item) => (
                 <Link
                   key={item.id}
@@ -298,38 +344,38 @@ export default function ListingDetail() {
                   className="group"
                 >
                   <div className="bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-shadow border border-[#E5E5E4] hover:border-[#3B82F6]">
-                    <div className="relative h-40 overflow-hidden bg-[#F4F4F5]">
+                    <div className="relative h-28 sm:h-40 overflow-hidden bg-[#F4F4F5]">
                       <img
                         src={item.photos[0]}
                         alt={item.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
-                    <div className="p-5">
-                      <div className="flex items-center justify-between gap-3 mb-3">
-                        <span className="inline-flex items-center rounded-full bg-[#F4F4F5] px-2.5 py-1 text-[10px] font-semibold text-[#0F172A] whitespace-nowrap">
+                    <div className="p-3 sm:p-5">
+                      <div className="flex items-center justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
+                        <span className="inline-flex items-center rounded-full bg-[#F4F4F5] px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-semibold text-[#0F172A] whitespace-nowrap">
                           {categoryBadgeLabels[item.category]}
                         </span>
-                        <span className="text-xs text-[#71717A]">
+                        <span className="text-[10px] sm:text-xs text-[#71717A]">
                           {new Date(item.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                         </span>
                       </div>
-                      <h3 className="font-bold text-[#0F172A] mb-2 line-clamp-1 text-[17px]">
+                      <h3 className="font-bold text-[#0F172A] mb-1.5 sm:mb-2 line-clamp-2 text-[14px] sm:text-[17px] leading-tight">
                         {item.title}
                       </h3>
-                      <div className="space-y-2 text-sm">
+                      <div className="space-y-1.5 sm:space-y-2 text-sm">
                         <div className="flex items-center gap-1.5 text-[#52525B]">
-                          <Building2 className="size-4 text-[#71717A]" />
-                          <span className="truncate text-xs">{item.site || item.author?.site}</span>
+                          <Building2 className="size-3.5 sm:size-4 text-[#71717A]" />
+                          <span className="truncate text-[11px] sm:text-xs">{item.site || item.author?.site}</span>
                         </div>
-                        <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center justify-between gap-2 sm:gap-3">
                           <div className="flex items-center gap-1.5 text-[#71717A] min-w-0">
-                            <MapPin className="size-4" />
-                            <span className="truncate text-xs">{item.location}</span>
+                            <MapPin className="size-3.5 sm:size-4" />
+                            <span className="truncate text-[11px] sm:text-xs">{item.location}</span>
                           </div>
                           <div className="flex items-center gap-1.5 text-[#0F172A] font-semibold flex-shrink-0">
-                            <Package className="size-4" />
-                            <span className="text-xs">{item.quantity}</span>
+                            <Package className="size-3.5 sm:size-4" />
+                            <span className="text-[11px] sm:text-xs">{item.quantity}</span>
                           </div>
                         </div>
                       </div>

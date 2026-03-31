@@ -27,7 +27,22 @@ function readDeposits(): DepositRecord[] {
 
   try {
     const parsedValue = JSON.parse(rawValue);
-    cachedDeposits = Array.isArray(parsedValue) ? parsedValue : EMPTY_DEPOSITS;
+    cachedDeposits = Array.isArray(parsedValue)
+      ? parsedValue.map((deposit) => {
+          const legacyPhoto = typeof deposit?.photo === 'string' ? deposit.photo : null;
+          const normalizedPhotos = Array.isArray(deposit?.photos)
+            ? deposit.photos.filter((photo: unknown) => typeof photo === 'string')
+            : legacyPhoto
+              ? [legacyPhoto]
+              : [];
+
+          return {
+            ...deposit,
+            photos: normalizedPhotos,
+            photo: legacyPhoto ?? normalizedPhotos[0] ?? null,
+          };
+        })
+      : EMPTY_DEPOSITS;
     return cachedDeposits;
   } catch {
     cachedDeposits = EMPTY_DEPOSITS;
