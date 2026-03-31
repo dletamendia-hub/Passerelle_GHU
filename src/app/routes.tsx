@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, createHashRouter } from "react-router";
 import Root from "./components/Root";
 import Home from "./components/Home";
 import ListingDetail from "./components/ListingDetail";
@@ -8,7 +8,7 @@ import ValidationQueue from "./components/ValidationQueue";
 import AdminDashboard from "./components/AdminDashboard";
 import BrowseListings from "./components/BrowseListings";
 
-export const router = createBrowserRouter([
+const routes = [
   {
     path: "/",
     Component: Root,
@@ -22,4 +22,10 @@ export const router = createBrowserRouter([
       { path: "browse", Component: BrowseListings },
     ],
   },
-]);
+];
+
+const useHashRouter = import.meta.env.PROD && import.meta.env.BASE_URL === "/Passerelle_GHU/";
+
+export const router = useHashRouter
+  ? createHashRouter(routes)
+  : createBrowserRouter(routes);
