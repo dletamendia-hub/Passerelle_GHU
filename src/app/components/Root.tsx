@@ -80,14 +80,14 @@ export default function Root() {
 
   useEffect(() => {
     const nextOffset = headerVisible || mobileMenuOpen ? '72px' : '0px';
-    const nextOffsetDesktop = headerVisible || mobileMenuOpen ? '80px' : '0px';
+    const nextOffsetDesktop = headerVisible || mobileMenuOpen ? '100px' : '0px';
 
     document.documentElement.style.setProperty('--sticky-header-offset', nextOffset);
     document.documentElement.style.setProperty('--sticky-header-offset-desktop', nextOffsetDesktop);
 
     return () => {
       document.documentElement.style.setProperty('--sticky-header-offset', '72px');
-      document.documentElement.style.setProperty('--sticky-header-offset-desktop', '80px');
+      document.documentElement.style.setProperty('--sticky-header-offset-desktop', '100px');
     };
   }, [headerVisible, mobileMenuOpen]);
 
@@ -148,7 +148,7 @@ export default function Root() {
         type="button"
         onClick={() => setMobileMenuOpen(false)}
         aria-label="Fermer le menu"
-        className={`fixed inset-0 z-[60] bg-[#0F172A]/18 backdrop-blur-[2px] transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 z-[60] bg-[#0F172A]/18 backdrop-blur-[2px] transition-opacity duration-300 min-[840px]:hidden ${
           mobileMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
         }`}
       />
@@ -166,7 +166,7 @@ export default function Root() {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-4 sm:py-5">
 
           {/* ── Desktop layout ── */}
-          <div className="hidden md:flex items-center justify-between">
+          <div className="hidden min-[840px]:flex items-center justify-between">
             <Link to="/" onClick={handleLogoClick} className="flex items-center">
               <img src={logoImage} alt="Passerelle GHU" className="h-10 w-auto" />
             </Link>
@@ -257,7 +257,7 @@ export default function Root() {
           </div>
 
           {/* ── Mobile / Tablet layout ── */}
-          <div className="flex md:hidden items-center justify-between">
+          <div className="flex min-[840px]:hidden items-center justify-between">
             <Link to="/" onClick={handleLogoClick} className="flex items-center">
               <img src={logoImage} alt="Passerelle GHU" className="h-9 w-auto" />
             </Link>
@@ -289,7 +289,7 @@ export default function Root() {
 
           {/* ── Mobile dropdown menu ── */}
           <div
-            className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] md:hidden ${
+            className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] min-[840px]:hidden ${
               mobileMenuOpen ? 'mt-3 max-h-[420px] translate-y-0 opacity-100' : 'max-h-0 -translate-y-2 opacity-0'
             }`}
           >

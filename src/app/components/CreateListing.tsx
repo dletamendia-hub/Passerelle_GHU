@@ -443,7 +443,7 @@ export default function CreateListing() {
             {formFields}
           </div>
           <div className="col-span-5">
-            <div className="sticky top-[calc(var(--sticky-header-offset-desktop,80px)+32px)] z-10 transition-[top] duration-300">
+            <div className="sticky top-[calc(var(--sticky-header-offset-desktop,100px)+32px)] z-10 transition-[top] duration-300">
               {tipsContent}
             </div>
           </div>

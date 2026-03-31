@@ -31,6 +31,7 @@ export default function Home() {
   const searchPanelRef = useRef<HTMLDivElement | null>(null);
   const [scrollY, setScrollY] = useState(0);
   const [heroReady, setHeroReady] = useState(false);
+  const [searchBarPinned, setSearchBarPinned] = useState(false);
   const [displayStats, setDisplayStats] = useState({
     available: 0,
     recent: 0,
@@ -53,6 +54,18 @@ export default function Home() {
   useEffect(() => {
     const handleScroll = () => {
       setScrollY(window.scrollY);
+
+      if (!searchPanelRef.current) {
+        return;
+      }
+
+      const rootStyles = window.getComputedStyle(document.documentElement);
+      const stickyOffset = window.innerWidth >= 840
+        ? Number.parseFloat(rootStyles.getPropertyValue('--sticky-header-offset-desktop')) || 100
+        : Number.parseFloat(rootStyles.getPropertyValue('--sticky-header-offset')) || 72;
+
+      const panelTop = searchPanelRef.current.getBoundingClientRect().top;
+      setSearchBarPinned(panelTop <= stickyOffset + 0.5);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -84,7 +97,6 @@ export default function Home() {
   const backgroundParallax = heroParallaxDistance * 0.08;
   const leftParallax = heroParallaxDistance * 0.18;
   const rightParallax = heroParallaxDistance * 0.22;
-  const searchBarDocked = scrollY > 180;
   const backgroundScale = heroReady ? 1 : 1.02;
   const leftScale = heroReady ? 1 : 1.045;
   const rightScale = heroReady ? 1 : 1.055;
@@ -390,40 +402,33 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Search — gradient transparent en haut du filtre → crème en bas */}
+      {/* Search — sticky input only */}
       <div
-        className="sticky top-[var(--sticky-header-offset,72px)] lg:top-[var(--sticky-header-offset-desktop,80px)] z-[60] transition-[top] duration-300"
-        style={{ background: 'linear-gradient(to bottom, rgba(254,249,244,0) 0%, #fef9f4 100%)' }}
+        className="sticky top-[var(--sticky-header-offset,72px)] min-[840px]:top-[var(--sticky-header-offset-desktop,100px)] z-[60] px-4 pb-0 transition-[top] duration-300 sm:px-8"
       >
-        <div className="max-w-[1120px] mx-auto px-4 sm:px-8 pt-0 pb-0">
-          <div
-            className={`bg-white shadow-[0_10px_30px_rgba(15,23,42,0.08)] p-4 lg:p-8 transition-[border-radius] duration-300 ${
-              searchBarDocked ? 'rounded-b-2xl rounded-t-none' : 'rounded-2xl'
-            }`}
-          >
-            <div ref={searchPanelRef} className="relative w-full">
-              <label className="block text-sm font-semibold text-[#0F172A] mb-3">Recherchez</label>
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-[#71717A]" />
-                <input
-                  type="text"
-                  placeholder="Rechercher par titre ou description..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setSearchResultsOpen(true);
-                  }}
-                  onFocus={() => setSearchResultsOpen(true)}
-                  className="w-full pl-12 pr-4 py-3.5 border border-[#0F172A] rounded-xl text-[15px] bg-white focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent transition-all"
-                />
-              </div>
-              {renderSearchSuggestions()}
+        <div className="mx-auto max-w-[1020px]">
+          <div ref={searchPanelRef} className="relative -mx-2 w-[calc(100%+16px)] lg:mx-0 lg:w-full">
+            {searchBarPinned && <div className="pointer-events-none absolute inset-x-0 -top-2 h-2 bg-[#fef9f4]" />}
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-[#71717A]" />
+              <input
+                type="text"
+                placeholder="Recherchez du matériel, du mobilier, de l’équipement..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setSearchResultsOpen(true);
+                }}
+                onFocus={() => setSearchResultsOpen(true)}
+                className="w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-[12px] border border-[#0F172A] bg-white pl-12 pr-4 py-3.5 text-[15px] shadow-[0_14px_32px_rgba(15,23,42,0.12)] focus:outline-none focus:border-[#3B82F6] transition-colors"
+              />
             </div>
+            {renderSearchSuggestions()}
           </div>
         </div>
       </div>
 
-      <div className="max-w-[1040px] mx-auto px-4 sm:px-8 py-8 sm:py-12">
+      <div className="max-w-[1040px] mx-auto px-4 sm:px-8 pt-10 pb-8 sm:pt-12 lg:pt-[70px] sm:pb-12">
         <div className="mb-8 sm:mb-10">
           <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:overflow-visible">
             {Object.entries(categoryLabels).map(([key, label]) => {
