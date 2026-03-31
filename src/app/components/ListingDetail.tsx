@@ -341,9 +341,9 @@ export default function ListingDetail() {
                     backTo: `${location.pathname}${location.search}`,
                     scrollY: window.scrollY,
                   }}
-                  className="group"
+                  className="group h-full"
                 >
-                  <div className="bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-shadow border border-[#E5E5E4] hover:border-[#3B82F6]">
+                  <div className="flex h-full flex-col bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-shadow border border-[#E5E5E4] hover:border-[#3B82F6]">
                     <div className="relative h-28 sm:h-40 overflow-hidden bg-[#F4F4F5]">
                       <img
                         src={item.photos[0]}
@@ -351,7 +351,7 @@ export default function ListingDetail() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
-                    <div className="p-3 sm:p-5">
+                    <div className="flex flex-1 flex-col p-3 sm:p-5">
                       <div className="flex items-center justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
                         <span className="inline-flex items-center rounded-full bg-[#F4F4F5] px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-semibold text-[#0F172A] whitespace-nowrap">
                           {categoryBadgeLabels[item.category]}
@@ -360,10 +360,10 @@ export default function ListingDetail() {
                           {new Date(item.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                         </span>
                       </div>
-                      <h3 className="font-bold text-[#0F172A] mb-1.5 sm:mb-2 line-clamp-2 text-[14px] sm:text-[17px] leading-tight">
+                      <h3 className="min-h-[2.5rem] sm:min-h-[2.75rem] font-bold text-[#0F172A] mb-1.5 sm:mb-2 line-clamp-2 text-[14px] sm:text-[17px] leading-tight">
                         {item.title}
                       </h3>
-                      <div className="space-y-1.5 sm:space-y-2 text-sm">
+                      <div className="mt-auto space-y-1.5 sm:space-y-2 text-sm">
                         <div className="flex items-center gap-1.5 text-[#52525B]">
                           <Building2 className="size-3.5 sm:size-4 text-[#71717A]" />
                           <span className="truncate text-[11px] sm:text-xs">{item.site || item.author?.site}</span>
