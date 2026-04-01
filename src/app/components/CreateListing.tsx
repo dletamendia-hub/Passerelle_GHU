@@ -1,5 +1,5 @@
 import { Upload, X, ChevronDown, Lightbulb } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { brokenConditionLabels, categoryLabels, conditionLabels, type DepositRecord, type ItemCategory } from '../types';
 import { currentUser } from '../mock-data';
@@ -24,6 +24,29 @@ export default function CreateListing() {
 
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [tipsOpen, setTipsOpen] = useState(false);
+  const mobileFooterSentinelRef = useRef<HTMLDivElement | null>(null);
+  const [hideMobileActionBar, setHideMobileActionBar] = useState(false);
+
+  useEffect(() => {
+    const sentinel = mobileFooterSentinelRef.current;
+
+    if (!sentinel) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setHideMobileActionBar(entry.isIntersecting);
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -12px 0px' },
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -293,62 +316,61 @@ export default function CreateListing() {
     </form>
   );
 
-  // ── Tips content (shared between mobile accordion and desktop sidebar) ──
-  const tipsContent = (
+  const tips = submissionMode === 'donation'
+    ? [
+        'Ajoutez une photo claire et bien cadrée du matériel',
+        'Soyez précis dans votre description (état, accessoires, particularités)',
+        'Indiquez les dimensions si c\'est du mobilier',
+        'Précisez la localisation exacte pour faciliter la récupération',
+        'Laissez vos coordonnées complètes pour être facilement joignable',
+      ]
+    : [
+        'Ajoutez une photo nette du matériel endommagé',
+        'Décrivez précisément la panne ou la casse constatée',
+        'Mentionnez les risques éventuels ou pièces manquantes',
+        'Indiquez la localisation exacte pour organiser la suite de la procédure',
+        'Laissez un contact direct si une vérification sur place est nécessaire',
+      ];
+
+  const workflowSteps = submissionMode === 'donation'
+    ? [
+        { n: 1, color: '#3B82F6', title: 'Publication', sub: 'Votre annonce est visible immédiatement' },
+        { n: 2, color: '#3B82F6', title: 'Demande de transfert', sub: 'Un agent demande le bien' },
+        { n: 3, color: '#3B82F6', title: 'Validation achat', sub: 'Vérification de l\'amortissement' },
+        { n: 4, color: '#10B981', title: 'Transfert', sub: 'Le matériel change de service' },
+      ]
+    : [
+        { n: 1, color: '#F59E0B', title: 'Déclaration', sub: 'Le matériel cassé est signalé via ce formulaire' },
+        { n: 2, color: '#F59E0B', title: 'Qualification', sub: 'Le besoin de casse est vérifié par la procédure dédiée' },
+        { n: 3, color: '#EF4444', title: 'Sortie du parc', sub: 'Le matériel n’est pas publié dans les annonces' },
+        { n: 4, color: '#64748B', title: 'Traitement', sub: 'La mise au rebut suit le circuit interne adapté' },
+      ];
+
+  const renderTipsSections = (compact = false) => (
     <>
-      <div className="bg-white border border-[#E5E5E4] rounded-2xl p-6 sm:p-8">
-        <h3 className="text-lg sm:text-xl font-semibold text-[#0F172A] mb-4">
+      <section className={compact ? '' : 'bg-white border border-[#E5E5E4] rounded-2xl p-6 sm:p-8'}>
+        <h3 className="mb-4 text-lg font-semibold text-[#0F172A] sm:text-xl">
           {submissionMode === 'donation' ? 'Conseils pour votre dépôt' : 'Conseils pour la déclaration de casse'}
         </h3>
         <ul className="space-y-3 text-sm text-[#52525B]">
-          {(
-            submissionMode === 'donation'
-              ? [
-                  'Ajoutez une photo claire et bien cadrée du matériel',
-                  'Soyez précis dans votre description (état, accessoires, particularités)',
-                  'Indiquez les dimensions si c\'est du mobilier',
-                  'Précisez la localisation exacte pour faciliter la récupération',
-                  'Laissez vos coordonnées complètes pour être facilement joignable',
-                ]
-              : [
-                  'Ajoutez une photo nette du matériel endommagé',
-                  'Décrivez précisément la panne ou la casse constatée',
-                  'Mentionnez les risques éventuels ou pièces manquantes',
-                  'Indiquez la localisation exacte pour organiser la suite de la procédure',
-                  'Laissez un contact direct si une vérification sur place est nécessaire',
-                ]
-          ).map((tip, i) => (
+          {tips.map((tip, i) => (
             <li key={i} className="flex gap-2">
-              <span className="text-[#3B82F6] font-bold">•</span>
+              <span className="font-bold text-[#3B82F6]">•</span>
               <span>{tip}</span>
             </li>
           ))}
         </ul>
-      </div>
+      </section>
 
-      <div className="bg-white border border-[#E5E5E4] rounded-2xl p-6 sm:p-8 mt-4 sm:mt-6">
-        <h3 className="text-base sm:text-lg font-semibold text-[#0F172A] mb-4">
+      <section className={compact ? 'mt-6 border-t border-[#E5E5E4] pt-6' : 'mt-4 rounded-2xl border border-[#E5E5E4] bg-white p-6 sm:mt-6 sm:p-8'}>
+        <h3 className="mb-4 text-base font-semibold text-[#0F172A] sm:text-lg">
           {submissionMode === 'donation' ? 'Workflow de validation' : 'Workflow de mise au rebut'}
         </h3>
         <div className="space-y-4">
-          {(
-            submissionMode === 'donation'
-              ? [
-                  { n: 1, color: '#3B82F6', title: 'Publication', sub: 'Votre annonce est visible immédiatement' },
-                  { n: 2, color: '#3B82F6', title: 'Demande de transfert', sub: 'Un agent demande le bien' },
-                  { n: 3, color: '#3B82F6', title: 'Validation achat', sub: 'Vérification de l\'amortissement' },
-                  { n: 4, color: '#10B981', title: 'Transfert', sub: 'Le matériel change de service' },
-                ]
-              : [
-                  { n: 1, color: '#F59E0B', title: 'Déclaration', sub: 'Le matériel cassé est signalé via ce formulaire' },
-                  { n: 2, color: '#F59E0B', title: 'Qualification', sub: 'Le besoin de casse est vérifié par la procédure dédiée' },
-                  { n: 3, color: '#EF4444', title: 'Sortie du parc', sub: 'Le matériel n’est pas publié dans les annonces' },
-                  { n: 4, color: '#64748B', title: 'Traitement', sub: 'La mise au rebut suit le circuit interne adapté' },
-                ]
-          ).map(({ n, color, title, sub }) => (
+          {workflowSteps.map(({ n, color, title, sub }) => (
             <div key={n} className="flex gap-3">
               <div
-                className="size-8 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0"
+                className="flex size-8 flex-shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
                 style={{ backgroundColor: color }}
               >
                 {n}
@@ -360,7 +382,7 @@ export default function CreateListing() {
             </div>
           ))}
         </div>
-      </div>
+      </section>
     </>
   );
 
@@ -371,7 +393,7 @@ export default function CreateListing() {
         <div className="mb-6 sm:mb-8">
           <h1
             className="font-semibold text-[#0F172A] leading-[1.2] mb-2 sm:mb-3"
-            style={{ fontFamily: 'Fraunces, serif', fontSize: 'clamp(26px, 4.4vw, 40px)' }}
+            style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400, fontSize: 'clamp(26px, 4.4vw, 40px)' }}
           >
             {submissionMode === 'donation' ? 'Déposez votre matériel' : 'Déclarez un matériel cassé'}
           </h1>
@@ -382,7 +404,7 @@ export default function CreateListing() {
           </p>
         </div>
 
-        <div className="mb-6 sm:mb-8">
+        <div className="mb-6 flex justify-center sm:mb-8 sm:block">
           <div className="inline-flex items-center gap-2 rounded-[18px] border border-[#E5E5E4] bg-white p-[8px]">
             <button
               type="button"
@@ -411,30 +433,30 @@ export default function CreateListing() {
 
         {/* ── Mobile collapsible tips ── */}
         <div className="sm:hidden mb-6">
-          <button
-            type="button"
-            onClick={() => setTipsOpen(v => !v)}
-            className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl border-2 transition-all ${
-              tipsOpen
-                ? 'bg-[#EFF6FF] border-[#BFDBFE] text-[#1E3A8A]'
-                : 'bg-[#EFF6FF] border-[#BFDBFE] text-[#1E3A8A] hover:border-[#93C5FD]'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Lightbulb className="size-4 text-[#3B82F6]" />
-              <span className="text-sm font-semibold text-[#1E3A8A]">Conseils</span>
-            </div>
-            <ChevronDown
-              className="size-4 text-[#71717A] transition-transform duration-200"
-              style={{ transform: tipsOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-            />
-          </button>
+          <div className="overflow-hidden rounded-2xl border-2 border-[#BFDBFE] bg-[#EFF6FF]">
+            <button
+              type="button"
+              onClick={() => setTipsOpen(v => !v)}
+              className={`flex w-full items-center justify-between px-4 py-3.5 text-[#1E3A8A] transition-all ${
+                tipsOpen ? 'border-b border-[#BFDBFE]' : 'hover:bg-[#E6F0FF]'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Lightbulb className="size-4 text-[#3B82F6]" />
+                <span className="text-sm font-semibold text-[#1E3A8A]">Conseils</span>
+              </div>
+              <ChevronDown
+                className="size-4 text-[#71717A] transition-transform duration-200"
+                style={{ transform: tipsOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              />
+            </button>
 
-          {tipsOpen && (
-            <div className="mt-3">
-              {tipsContent}
-            </div>
-          )}
+            {tipsOpen && (
+              <div className="bg-white p-6">
+                {renderTipsSections(true)}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* ── Desktop 12-col layout — hidden on mobile ── */}
@@ -444,19 +466,23 @@ export default function CreateListing() {
           </div>
           <div className="col-span-5">
             <div className="sticky top-[calc(var(--sticky-header-offset-desktop,100px)+32px)] z-10 transition-[top] duration-300">
-              {tipsContent}
+              {renderTipsSections()}
             </div>
           </div>
         </div>
 
         {/* ── Mobile form only ── */}
-        <div className="sm:hidden">
+      <div className="sm:hidden">
           {formFields}
         </div>
+
+        <div ref={mobileFooterSentinelRef} className="h-1 sm:hidden" />
       </div>
 
       {/* ── Fixed bottom CTA bar — mobile only ── */}
-      <div className="fixed bottom-0 left-0 right-0 sm:hidden z-50 bg-white/95 backdrop-blur-sm border-t border-[#E5E5E4] px-4 py-3 flex gap-3">
+      <div className={`fixed bottom-0 left-0 right-0 z-50 flex gap-3 border-t border-[#E5E5E4] bg-white/95 px-4 py-3 backdrop-blur-sm transition-all duration-200 sm:hidden ${
+        hideMobileActionBar ? 'pointer-events-none translate-y-full opacity-0' : 'translate-y-0 opacity-100'
+      }`}>
         <Link
           to="/"
           className="flex-1 px-5 py-3 border border-[#E5E5E4] text-[#0F172A] rounded-xl font-medium hover:bg-[#F4F4F5] transition-colors text-center text-sm"

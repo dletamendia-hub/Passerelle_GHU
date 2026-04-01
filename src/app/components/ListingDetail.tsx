@@ -214,7 +214,7 @@ export default function ListingDetail() {
               </div>
               <h1
                 className="font-semibold text-[#0F172A] leading-[1.2] mb-3"
-                style={{ fontFamily: 'Fraunces, serif', fontSize: 'clamp(24px, 4.4vw, 40px)' }}
+                style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400, fontSize: 'clamp(24px, 4.4vw, 40px)' }}
               >
                 {listing.title}
               </h1>
@@ -328,7 +328,7 @@ export default function ListingDetail() {
           <section className="mt-14 sm:mt-16">
             <div className="flex items-end justify-between gap-4 mb-5 sm:mb-6">
               <div>
-                <h2 className="text-[24px] sm:text-[30px] font-bold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fraunces, serif' }}>Articles similaires</h2>
+                <h2 className="text-[24px] sm:text-[30px] font-bold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400 }}>Articles similaires</h2>
                 <p className="text-sm text-[#71717A] mt-1">D’autres biens disponibles dans la même catégorie.</p>
               </div>
             </div>
@@ -343,7 +343,7 @@ export default function ListingDetail() {
                   }}
                   className="group h-full"
                 >
-                  <div className="flex h-full flex-col bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-shadow border border-[#E5E5E4] hover:border-[#3B82F6]">
+                  <div className="flex h-full flex-col overflow-hidden rounded-[10px] border border-[#E5E5E4] bg-white transition-shadow hover:shadow-xl hover:border-[#3B82F6]">
                     <div className="relative h-28 sm:h-40 overflow-hidden bg-[#F4F4F5]">
                       <img
                         src={item.photos[0]}

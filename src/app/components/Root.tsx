@@ -2,9 +2,9 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router';
 import { useState, useEffect, useRef } from 'react';
 import { Home as HomeIcon, Plus, FolderOpen, CheckSquare, LayoutDashboard, Menu, X, ArrowRight, ChevronDown, Heart, Settings, LogOut } from 'lucide-react';
 import { currentUser } from '../mock-data';
-import logoImage from '../../assets/e866dfa28a0dfee6f79bf7633713c72cdb2640df.png';
+import logoDark from '../../assets/logo-dark.svg';
 import footerIllustration from '../../assets/footer-illustration.png';
-import footerLogoDark from '../../assets/footer-logo-dark.png';
+import logoLight from '../../assets/logo-light.svg';
 
 export default function Root() {
   const location = useLocation();
@@ -14,6 +14,7 @@ export default function Root() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
@@ -79,15 +80,30 @@ export default function Root() {
   }, [location.pathname, location.search]);
 
   useEffect(() => {
-    const nextOffset = headerVisible || mobileMenuOpen ? '72px' : '0px';
-    const nextOffsetDesktop = headerVisible || mobileMenuOpen ? '100px' : '0px';
+    const updateStickyOffsets = () => {
+      const headerHeight = headerRef.current?.offsetHeight ?? 0;
+      const isDesktop = window.innerWidth >= 840;
+      const visibleOffset = headerVisible || mobileMenuOpen ? `${headerHeight}px` : '0px';
 
-    document.documentElement.style.setProperty('--sticky-header-offset', nextOffset);
-    document.documentElement.style.setProperty('--sticky-header-offset-desktop', nextOffsetDesktop);
+      document.documentElement.style.setProperty(
+        isDesktop ? '--sticky-header-offset-desktop' : '--sticky-header-offset',
+        visibleOffset,
+      );
+
+      if (isDesktop) {
+        document.documentElement.style.setProperty('--sticky-header-offset', '0px');
+      } else {
+        document.documentElement.style.setProperty('--sticky-header-offset-desktop', '0px');
+      }
+    };
+
+    updateStickyOffsets();
+    window.addEventListener('resize', updateStickyOffsets);
 
     return () => {
-      document.documentElement.style.setProperty('--sticky-header-offset', '72px');
-      document.documentElement.style.setProperty('--sticky-header-offset-desktop', '100px');
+      window.removeEventListener('resize', updateStickyOffsets);
+      document.documentElement.style.setProperty('--sticky-header-offset', '0px');
+      document.documentElement.style.setProperty('--sticky-header-offset-desktop', '0px');
     };
   }, [headerVisible, mobileMenuOpen]);
 
@@ -155,6 +171,7 @@ export default function Root() {
 
       {/* Header */}
       <header
+        ref={headerRef}
         className={`fixed top-0 left-0 right-0 z-[70] transition-all duration-300 ${
           headerVisible || mobileMenuOpen ? 'translate-y-0' : '-translate-y-full'
         } ${
@@ -168,7 +185,7 @@ export default function Root() {
           {/* ── Desktop layout ── */}
           <div className="hidden min-[840px]:flex items-center justify-between">
             <Link to="/" onClick={handleLogoClick} className="flex items-center">
-              <img src={logoImage} alt="Passerelle GHU" className="h-10 w-auto" />
+              <img src={logoLight} alt="Passerelle GHU" className="h-[56px] w-auto" />
             </Link>
 
             <div className="flex items-center gap-3">
@@ -259,7 +276,7 @@ export default function Root() {
           {/* ── Mobile / Tablet layout ── */}
           <div className="flex min-[840px]:hidden items-center justify-between">
             <Link to="/" onClick={handleLogoClick} className="flex items-center">
-              <img src={logoImage} alt="Passerelle GHU" className="h-9 w-auto" />
+              <img src={logoLight} alt="Passerelle GHU" className="h-11 w-auto max-w-[220px]" />
             </Link>
 
             <div className="flex items-center gap-2">
@@ -356,7 +373,7 @@ export default function Root() {
           <div className="lg:col-span-2">
             <div className="px-6 py-8 sm:px-8 sm:py-10 lg:px-12">
               <div className="mb-8 max-w-[560px]">
-                <img src={footerLogoDark} alt="Passerelle GHU" className="h-11 w-auto" />
+                <img src={logoDark} alt="Passerelle GHU" className="h-12 w-auto sm:h-14" />
                 <p className="mt-5 text-sm leading-6 text-white/72 sm:text-[15px]">
                   Plateforme de mise en relation entre établissements pour redistribuer le matériel disponible, suivre les demandes et structurer les dépôts.
                 </p>

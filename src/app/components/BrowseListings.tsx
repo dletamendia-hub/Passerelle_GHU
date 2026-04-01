@@ -152,7 +152,7 @@ export default function BrowseListings() {
       state={getNavigationState()}
       className="group h-full"
     >
-      <div className="flex h-full flex-col bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-shadow border border-[#E5E5E4] hover:border-[#3B82F6]">
+      <div className="flex h-full flex-col overflow-hidden rounded-[10px] border border-[#E5E5E4] bg-white transition-shadow hover:shadow-xl hover:border-[#3B82F6]">
         <div className="relative h-28 sm:h-40 overflow-hidden bg-[#F4F4F5]">
           <img
             src={listing.photos[0]}
@@ -219,7 +219,7 @@ export default function BrowseListings() {
       <div className="mb-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-[34px] sm:text-[42px] font-bold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fraunces, serif' }}>{pageTitle}</h1>
+            <h1 className="text-[34px] sm:text-[42px] font-bold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400 }}>{pageTitle}</h1>
             <p className="text-sm sm:text-base text-[#71717A] mt-2">{pageDescription}</p>
             {activeFilterCount > 0 && (
               <div className="mt-3 flex flex-wrap items-center gap-2">

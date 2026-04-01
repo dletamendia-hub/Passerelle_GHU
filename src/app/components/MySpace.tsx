@@ -13,7 +13,7 @@ export default function MySpace() {
   const initialTab: 'deposits' | 'requests' | 'favorites' =
     requestedTab === 'favorites' || requestedTab === 'requests' || requestedTab === 'deposits'
       ? requestedTab
-      : 'deposits';
+      : 'favorites';
   const [activeTab, setActiveTab] = useState<'deposits' | 'requests' | 'favorites'>(initialTab);
   const [transferSectionOpen, setTransferSectionOpen] = useState(true);
   const [brokenSectionOpen, setBrokenSectionOpen] = useState(true);
@@ -41,7 +41,7 @@ export default function MySpace() {
       <div className="mb-8 sm:mb-12">
         <h1
           className="font-semibold text-[#0F172A] leading-[1.2] mb-2 sm:mb-3"
-          style={{ fontFamily: 'Fraunces, serif', fontSize: 'clamp(26px, 4.4vw, 40px)' }}
+          style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400, fontSize: 'clamp(26px, 4.4vw, 40px)' }}
         >
           Mon espace
         </h1>
@@ -119,7 +119,7 @@ export default function MySpace() {
                 >
                   <div className="flex items-center gap-2">
                     <Package className="size-4 text-[#0F172A]" />
-                    <h2 className="text-[22px] font-semibold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fraunces, serif' }}>Annonces de transfert</h2>
+                    <h2 className="text-[22px] font-semibold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400 }}>Annonces de transfert</h2>
                   </div>
                   <ChevronDown className={`size-4 text-[#71717A] transition-transform ${transferSectionOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -239,7 +239,7 @@ export default function MySpace() {
                 >
                   <div className="flex items-center gap-2">
                     <Wrench className="size-4 text-[#0F172A]" />
-                    <h2 className="text-[22px] font-semibold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fraunces, serif' }}>Matériel cassé</h2>
+                    <h2 className="text-[22px] font-semibold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400 }}>Matériel cassé</h2>
                   </div>
                   <ChevronDown className={`size-4 text-[#71717A] transition-transform ${brokenSectionOpen ? 'rotate-180' : ''}`} />
                 </button>

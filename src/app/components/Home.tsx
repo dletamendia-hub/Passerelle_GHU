@@ -8,6 +8,8 @@ import heroBackgroundImage from '../../assets/hero-background.png';
 import heroLeftImage from '../../assets/hero-perso-left.png';
 import heroRightImage from '../../assets/hero-perso-right.png';
 
+let hasShownHomePreloader = false;
+
 const categoryIcons: Record<ItemCategory, ComponentType<{ className?: string }>> = {
   mobilier_bureau: BriefcaseBusiness,
   mobilier_medical: BedSingle,
@@ -30,6 +32,7 @@ export default function Home() {
   const location = useLocation();
   const searchPanelRef = useRef<HTMLDivElement | null>(null);
   const [scrollY, setScrollY] = useState(0);
+  const [isIntroLoading, setIsIntroLoading] = useState(!hasShownHomePreloader);
   const [heroReady, setHeroReady] = useState(false);
   const [searchBarPinned, setSearchBarPinned] = useState(false);
   const [displayStats, setDisplayStats] = useState({
@@ -77,6 +80,63 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (!isIntroLoading) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadImage = (src: string) =>
+      new Promise<void>((resolve) => {
+        const image = new Image();
+        image.onload = () => resolve();
+        image.onerror = () => resolve();
+        image.src = src;
+        if (image.complete) {
+          resolve();
+        }
+      });
+
+    const waitForFonts = async () => {
+      if (!('fonts' in document)) {
+        return;
+      }
+
+      try {
+        await document.fonts.ready;
+      } catch {
+        // Ignore font loading issues and continue with the intro.
+      }
+    };
+
+    const prepareIntro = async () => {
+      await Promise.all([
+        waitForFonts(),
+        loadImage(heroBackgroundImage),
+        loadImage(heroLeftImage),
+        loadImage(heroRightImage),
+        new Promise((resolve) => window.setTimeout(resolve, 550)),
+      ]);
+
+      if (!isCancelled) {
+        hasShownHomePreloader = true;
+        setIsIntroLoading(false);
+      }
+    };
+
+    prepareIntro();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isIntroLoading]);
+
+  useEffect(() => {
+    if (isIntroLoading) {
+      setHeroReady(false);
+      return;
+    }
+
     const frame = window.requestAnimationFrame(() => {
       setHeroReady(true);
     });
@@ -84,7 +144,7 @@ export default function Home() {
     return () => {
       window.cancelAnimationFrame(frame);
     };
-  }, []);
+  }, [isIntroLoading]);
 
   const availableListings = mockListings.filter((listing) => listing.status === 'published');
   const establishmentOptions = [...new Set(
@@ -94,9 +154,9 @@ export default function Home() {
   )].sort((a, b) => a.localeCompare(b));
 
   const heroParallaxDistance = Math.min(scrollY, 520);
-  const backgroundParallax = heroParallaxDistance * 0.08;
-  const leftParallax = heroParallaxDistance * 0.18;
-  const rightParallax = heroParallaxDistance * 0.22;
+  const backgroundParallax = heroParallaxDistance * -0.06;
+  const leftParallax = heroParallaxDistance * -0.14;
+  const rightParallax = heroParallaxDistance * -0.18;
   const backgroundScale = heroReady ? 1 : 1.02;
   const leftScale = heroReady ? 1 : 1.045;
   const rightScale = heroReady ? 1 : 1.055;
@@ -146,6 +206,15 @@ export default function Home() {
     .filter((section) => section.listings.length > 0);
 
   useEffect(() => {
+    if (isIntroLoading) {
+      setDisplayStats({
+        available: 0,
+        recent: 0,
+        establishments: 0,
+      });
+      return;
+    }
+
     const targets = {
       available: availableListings.length,
       recent: recentListings.length,
@@ -174,7 +243,7 @@ export default function Home() {
     return () => {
       window.cancelAnimationFrame(frame);
     };
-  }, [availableListings.length, recentListings.length, establishmentOptions.length]);
+  }, [availableListings.length, recentListings.length, establishmentOptions.length, isIntroLoading]);
 
   useEffect(() => {
     if (!searchResultsOpen) {
@@ -261,7 +330,7 @@ export default function Home() {
       state={getNavigationState()}
       className="group h-full"
     >
-      <div className="flex h-full flex-col bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-shadow border border-[#E5E5E4] hover:border-[#3B82F6]">
+      <div className="flex h-full flex-col overflow-hidden rounded-[10px] border border-[#E5E5E4] bg-white transition-shadow hover:shadow-xl hover:border-[#3B82F6]">
         <div className="relative h-28 sm:h-40 overflow-hidden bg-[#F4F4F5]">
           <img
             src={listing.photos[0]}
@@ -316,6 +385,29 @@ export default function Home() {
 
   return (
     <div className="bg-[#fef9f4]">
+      <div
+        className={`fixed inset-0 z-[120] flex items-center justify-center bg-[#fef9f4] transition-opacity duration-500 ${
+          isIntroLoading ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+      >
+        <div className="flex flex-col items-center gap-4 px-6 text-center">
+          <div className="flex size-16 items-center justify-center rounded-full border border-[#E5E5E4] bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
+            <Package className="size-7 animate-pulse text-[#0F172A]" />
+          </div>
+          <div>
+            <div
+              className="text-[26px] leading-none text-[#0F172A]"
+              style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400 }}
+            >
+              Chargement
+            </div>
+            <p className="mt-2 text-sm text-[#71717A] sm:text-base">
+              Préparation du catalogue et des visuels...
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="relative h-[400px] lg:h-[600px] mb-[-80px] lg:mb-[-120px]">
         {/* Background Image */}
@@ -323,19 +415,19 @@ export default function Home() {
           <img
             src={heroBackgroundImage}
             alt="GHU"
-            className="absolute inset-0 h-full w-full object-cover object-[center_20%] transition-transform duration-[1450ms] ease-[cubic-bezier(0.25,0.95,0.35,1)]"
+            className="absolute inset-0 h-full w-full object-cover object-[center_20%] transition-transform duration-[1300ms] ease-[cubic-bezier(0.25,0.95,0.35,1)]"
             style={{ transform: `translateY(${backgroundParallax}px) scale(${backgroundScale})` }}
           />
           <img
             src={heroLeftImage}
             alt=""
-            className="pointer-events-none absolute bottom-0 left-0 h-[58%] w-auto object-contain transition-transform duration-[1650ms] ease-[cubic-bezier(0.25,0.95,0.35,1)] sm:h-[66%] lg:h-[96%]"
+            className="pointer-events-none absolute bottom-0 left-0 h-[58%] w-auto object-contain transition-transform duration-[1380ms] ease-[cubic-bezier(0.25,0.95,0.35,1)] sm:h-[66%] lg:h-[96%]"
             style={{ transform: `translateY(${leftParallax}px) scale(${leftScale})` }}
           />
           <img
             src={heroRightImage}
             alt=""
-            className="pointer-events-none absolute bottom-0 right-0 h-[58%] w-auto object-contain transition-transform duration-[1800ms] ease-[cubic-bezier(0.25,0.95,0.35,1)] sm:h-[66%] lg:h-[96%]"
+            className="pointer-events-none absolute bottom-0 right-0 h-[58%] w-auto object-contain transition-transform duration-[1460ms] ease-[cubic-bezier(0.25,0.95,0.35,1)] sm:h-[66%] lg:h-[96%]"
             style={{ transform: `translateY(${rightParallax}px) scale(${rightScale})` }}
           />
         </div>
@@ -363,8 +455,8 @@ export default function Home() {
         {/* Hero Content */}
         <div className="relative h-full max-w-[1400px] mx-auto px-4 sm:px-8 flex flex-col items-center justify-center">
           <h1
-            className="font-bold text-[#0F172A] text-center mb-6 sm:mb-12 max-w-[900px] tracking-tight"
-            style={{ fontFamily: 'Fraunces, serif', fontSize: 'clamp(34px, 7vw, 58px)', lineHeight: '1.16' }}
+            className="max-w-[900px] text-center font-bold tracking-tight text-[#0F172A] mb-6 sm:mb-12 lg:-translate-y-6"
+            style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400, fontSize: 'clamp(34px, 7vw, 58px)', lineHeight: '1.16' }}
           >
             Donnez une seconde vie<br />au matériel du GHU
           </h1>
@@ -420,7 +512,7 @@ export default function Home() {
                   setSearchResultsOpen(true);
                 }}
                 onFocus={() => setSearchResultsOpen(true)}
-                className="w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-[12px] border border-[#0F172A] bg-white pl-12 pr-4 py-3.5 text-[15px] shadow-[0_14px_32px_rgba(15,23,42,0.12)] focus:outline-none focus:border-[#3B82F6] transition-colors"
+                className="w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-[12px] border border-[#0F172A] bg-white pl-12 pr-4 py-3.5 text-base sm:text-[15px] shadow-[0_14px_32px_rgba(15,23,42,0.12)] focus:outline-none focus:border-[#3B82F6] transition-colors"
               />
             </div>
             {renderSearchSuggestions()}
@@ -445,7 +537,7 @@ export default function Home() {
                 <div className={`mx-auto mb-2.5 flex size-10 items-center justify-center rounded-full ${categoryStyle.wrapper}`}>
                   <CategoryIcon className={`size-[18px] ${categoryStyle.icon}`} />
                 </div>
-                <div className="text-[13px] font-semibold leading-tight">{label}</div>
+                <div className="text-[13px] font-medium leading-tight">{label}</div>
               </Link>
               );
             })}
@@ -458,7 +550,7 @@ export default function Home() {
               <section>
                 <div className="flex items-end justify-between gap-4 mb-5 sm:mb-6">
                   <div>
-                    <h3 className="text-[24px] sm:text-[30px] font-bold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fraunces, serif' }}>Les nouveautés</h3>
+                    <h3 className="text-[24px] sm:text-[30px] font-bold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400 }}>Les nouveautés</h3>
                   </div>
                   <Link
                     to={getBrowseLink({ section: 'newest' })}
@@ -479,7 +571,7 @@ export default function Home() {
               <section key={section.key}>
                 <div className="flex items-end justify-between gap-4 mb-5 sm:mb-6">
                   <div>
-                    <h3 className="text-[24px] sm:text-[30px] font-bold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fraunces, serif' }}>{section.label}</h3>
+                    <h3 className="text-[24px] sm:text-[30px] font-bold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400 }}>{section.label}</h3>
                     <p className="text-sm text-[#71717A] mt-1">
                       {section.listings.length} annonce{section.listings.length > 1 ? 's' : ''} disponible{section.listings.length > 1 ? 's' : ''}
                     </p>
