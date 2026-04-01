@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router';
 import { useState, useEffect, useRef } from 'react';
-import { Home as HomeIcon, Plus, FolderOpen, CheckSquare, LayoutDashboard, Menu, X, ArrowRight, ChevronDown, Heart, Settings, LogOut } from 'lucide-react';
+import { Home as HomeIcon, Plus, FolderOpen, CheckSquare, LayoutDashboard, Menu, X, ArrowRight, ChevronDown, Settings, LogOut, Heart } from 'lucide-react';
 import { currentUser } from '../mock-data';
 import logoDark from '../../assets/logo-dark.svg';
 import footerIllustration from '../../assets/footer-illustration.png';
@@ -15,6 +15,7 @@ export default function Root() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
+  const mobileHeaderBarRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
@@ -82,8 +83,11 @@ export default function Root() {
   useEffect(() => {
     const updateStickyOffsets = () => {
       const headerHeight = headerRef.current?.offsetHeight ?? 0;
+      const mobileHeaderBarHeight = mobileHeaderBarRef.current?.offsetHeight ?? 72;
       const isDesktop = window.innerWidth >= 840;
-      const visibleOffset = headerVisible || mobileMenuOpen ? `${headerHeight}px` : '0px';
+      const visibleOffset = headerVisible || mobileMenuOpen
+        ? `${isDesktop ? headerHeight : mobileHeaderBarHeight}px`
+        : '0px';
 
       document.documentElement.style.setProperty(
         isDesktop ? '--sticky-header-offset-desktop' : '--sticky-header-offset',
@@ -164,7 +168,7 @@ export default function Root() {
         type="button"
         onClick={() => setMobileMenuOpen(false)}
         aria-label="Fermer le menu"
-        className={`fixed inset-0 z-[60] bg-[#0F172A]/18 backdrop-blur-[2px] transition-opacity duration-300 min-[840px]:hidden ${
+        className={`fixed inset-0 z-[68] bg-[#0F172A]/18 backdrop-blur-[2px] transition-opacity duration-300 min-[840px]:hidden ${
           mobileMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
         }`}
       />
@@ -180,127 +184,144 @@ export default function Root() {
             : ''
         }`}
       >
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-4 sm:py-5">
+        <div className="mx-auto max-w-[1400px]">
+          <div ref={mobileHeaderBarRef} className="px-4 py-4 sm:px-8 sm:py-5">
 
-          {/* ── Desktop layout ── */}
-          <div className="hidden min-[840px]:flex items-center justify-between">
-            <Link to="/" onClick={handleLogoClick} className="flex items-center">
-              <img src={logoLight} alt="Passerelle GHU" className="h-[56px] w-auto" />
-            </Link>
+            {/* ── Desktop layout ── */}
+            <div className="hidden min-[840px]:flex items-center justify-between">
+              <Link to="/" onClick={handleLogoClick} className="flex items-center">
+                <img src={logoLight} alt="Passerelle GHU" className="h-[56px] w-auto" />
+              </Link>
 
-            <div className="flex items-center gap-3">
-              {/* Floating pill nav */}
-              <nav className="backdrop-blur-[2px] bg-[rgba(255,255,255,0.6)] rounded-[18px] border border-[#E5E5E4] flex items-center gap-2 p-[9px]">
-                <Link to="/" className={`flex items-center gap-2 px-5 py-2 rounded-[10px] text-[14px] font-medium transition-all ${location.pathname === '/' ? 'bg-[#0F172A] text-white' : 'text-[#0F172A] hover:bg-black/5'}`}>
-                  <HomeIcon className="size-4" />
-                  <span>Catalogue</span>
-                </Link>
-                <Link to="/create" className={`flex items-center gap-2 px-5 py-2 rounded-[10px] text-[14px] font-medium transition-all ${isActive('/create') ? 'bg-[#0F172A] text-white' : 'text-[#0F172A] hover:bg-black/5'}`}>
-                  <Plus className="size-4" />
-                  <span>Déposer</span>
-                </Link>
-                <Link to="/my-space" className={`flex items-center gap-2 px-5 py-2 rounded-[10px] text-[14px] font-medium transition-all ${isActive('/my-space') ? 'bg-[#0F172A] text-white' : 'text-[#0F172A] hover:bg-black/5'}`}>
-                  <FolderOpen className="size-4" />
-                  <span>Mon espace</span>
-                </Link>
-                {currentUser.role === 'achat' && (
-                  <Link to="/validation" className={`flex items-center gap-2 px-5 py-2 rounded-[10px] text-[14px] font-medium transition-all ${isActive('/validation') ? 'bg-[#0F172A] text-white' : 'text-[#0F172A] hover:bg-black/5'}`}>
-                    <CheckSquare className="size-4" />
-                    <span>Validation</span>
+              <div className="flex items-center gap-3">
+                {/* Floating pill nav */}
+                <nav className="backdrop-blur-[2px] bg-[rgba(255,255,255,0.6)] rounded-[18px] border border-[#E5E5E4] flex items-center gap-2 p-[9px]">
+                  <Link to="/" className={`flex items-center gap-2 px-5 py-2 rounded-[10px] text-[14px] font-medium transition-all ${location.pathname === '/' ? 'bg-[#0F172A] text-white' : 'text-[#0F172A] hover:bg-black/5'}`}>
+                    <HomeIcon className="size-4" />
+                    <span>Catalogue</span>
                   </Link>
-                )}
-                {currentUser.role === 'admin' && (
-                  <Link to="/admin" className={`flex items-center gap-2 px-5 py-2 rounded-[10px] text-[14px] font-medium transition-all ${isActive('/admin') ? 'bg-[#0F172A] text-white' : 'text-[#0F172A] hover:bg-black/5'}`}>
-                    <LayoutDashboard className="size-4" />
-                    <span>Admin</span>
+                  <Link to="/create" className={`flex items-center gap-2 px-5 py-2 rounded-[10px] text-[14px] font-medium transition-all ${isActive('/create') ? 'bg-[#0F172A] text-white' : 'text-[#0F172A] hover:bg-black/5'}`}>
+                    <Plus className="size-4" />
+                    <span>Déposer</span>
                   </Link>
-                )}
-              </nav>
-
-              <div ref={profileMenuRef} className="relative">
-                <button
-                  type="button"
-                  onClick={() => setProfileMenuOpen((value) => !value)}
-                  className="backdrop-blur-[2px] bg-[rgba(255,255,255,0.6)] rounded-[18px] border border-[#E5E5E4] flex items-center gap-3 py-[9px] pl-[9px] pr-4 transition-all hover:bg-white/80"
-                  aria-expanded={profileMenuOpen}
-                  aria-haspopup="menu"
-                  aria-label="Ouvrir le menu du profil"
-                >
-                  <div className="size-10 bg-[#3B82F6] rounded-full flex items-center justify-center">
-                    <span className="text-white text-[15px] font-semibold">{currentUser.name.charAt(0)}</span>
-                  </div>
-                  <ChevronDown className={`size-4 text-[#0F172A] transition-transform ${profileMenuOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                <div
-                  className={`absolute right-0 top-[calc(100%+12px)] w-[220px] overflow-hidden rounded-2xl border border-[#E5E5E4] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.14)] transition-all duration-200 ${
-                    profileMenuOpen ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-1 opacity-0'
-                  }`}
-                  role="menu"
-                >
-                  <div className="border-b border-[#E5E5E4] px-4 py-3">
-                    <div className="text-sm font-semibold text-[#0F172A]">Mon profil</div>
-                  </div>
-                  <div className="p-2">
-                    <Link
-                      to="/my-space?tab=favorites"
-                      className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#0F172A] transition-colors hover:bg-[#F4F4F5]"
-                      role="menuitem"
-                    >
-                      <Heart className="size-4 text-[#71717A]" />
-                      Mes favoris
+                  <Link to="/my-space" className={`flex items-center gap-2 px-5 py-2 rounded-[10px] text-[14px] font-medium transition-all ${isActive('/my-space') ? 'bg-[#0F172A] text-white' : 'text-[#0F172A] hover:bg-black/5'}`}>
+                    <FolderOpen className="size-4" />
+                    <span>Mon espace</span>
+                  </Link>
+                  <Link
+                    to="/favorites"
+                    aria-label="Favoris"
+                    className={`flex h-[36px] min-w-[48px] items-center justify-center rounded-[10px] px-3 text-[14px] font-medium transition-all ${
+                      isActive('/favorites')
+                        ? 'bg-[#0F172A] text-white'
+                        : 'bg-[#FFF1F5] text-[#E11D48] hover:bg-[#FFE4EC]'
+                    }`}
+                  >
+                    <Heart className={`size-4 ${isActive('/favorites') ? 'fill-current' : ''}`} />
+                  </Link>
+                  {currentUser.role === 'achat' && (
+                    <Link to="/validation" className={`flex items-center gap-2 px-5 py-2 rounded-[10px] text-[14px] font-medium transition-all ${isActive('/validation') ? 'bg-[#0F172A] text-white' : 'text-[#0F172A] hover:bg-black/5'}`}>
+                      <CheckSquare className="size-4" />
+                      <span>Validation</span>
                     </Link>
-                    <Link
-                      to="/my-space"
-                      className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#0F172A] transition-colors hover:bg-[#F4F4F5]"
-                      role="menuitem"
-                    >
-                      <Settings className="size-4 text-[#71717A]" />
-                      Préférences
+                  )}
+                  {currentUser.role === 'admin' && (
+                    <Link to="/admin" className={`flex items-center gap-2 px-5 py-2 rounded-[10px] text-[14px] font-medium transition-all ${isActive('/admin') ? 'bg-[#0F172A] text-white' : 'text-[#0F172A] hover:bg-black/5'}`}>
+                      <LayoutDashboard className="size-4" />
+                      <span>Admin</span>
                     </Link>
-                    <button
-                      type="button"
-                      onClick={() => setProfileMenuOpen(false)}
-                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-[#DC2626] transition-colors hover:bg-[#FEF2F2]"
-                      role="menuitem"
-                    >
-                      <LogOut className="size-4" />
-                      Se déconnecter
-                    </button>
+                  )}
+                </nav>
+
+                <div ref={profileMenuRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setProfileMenuOpen((value) => !value)}
+                    className="backdrop-blur-[2px] bg-[rgba(255,255,255,0.6)] rounded-[18px] border border-[#E5E5E4] flex items-center gap-3 py-[9px] pl-[9px] pr-4 transition-all hover:bg-white/80"
+                    aria-expanded={profileMenuOpen}
+                    aria-haspopup="menu"
+                    aria-label="Ouvrir le menu du profil"
+                  >
+                    <div className="size-10 bg-[#3B82F6] rounded-full flex items-center justify-center">
+                      <span className="text-white text-[15px] font-semibold">{currentUser.name.charAt(0)}</span>
+                    </div>
+                    <ChevronDown className={`size-4 text-[#0F172A] transition-transform ${profileMenuOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  <div
+                    className={`absolute right-0 top-[calc(100%+12px)] w-[220px] overflow-hidden rounded-2xl border border-[#E5E5E4] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.14)] transition-all duration-200 ${
+                      profileMenuOpen ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-1 opacity-0'
+                    }`}
+                    role="menu"
+                  >
+                    <div className="border-b border-[#E5E5E4] px-4 py-3">
+                      <div className="text-sm font-semibold text-[#0F172A]">Mon profil</div>
+                    </div>
+                    <div className="p-2">
+                      <Link
+                        to="/my-space"
+                        className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#0F172A] transition-colors hover:bg-[#F4F4F5]"
+                        role="menuitem"
+                      >
+                        <Settings className="size-4 text-[#71717A]" />
+                        Préférences
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => setProfileMenuOpen(false)}
+                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-[#DC2626] transition-colors hover:bg-[#FEF2F2]"
+                        role="menuitem"
+                      >
+                        <LogOut className="size-4" />
+                        Se déconnecter
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* ── Mobile / Tablet layout ── */}
-          <div className="flex min-[840px]:hidden items-center justify-between">
-            <Link to="/" onClick={handleLogoClick} className="flex items-center">
-              <img src={logoLight} alt="Passerelle GHU" className="h-11 w-auto max-w-[220px]" />
-            </Link>
-
-            <div className="flex items-center gap-2">
-              {/* "+" always visible */}
-              <Link
-                to="/create"
-                className={`size-10 flex items-center justify-center rounded-xl transition-all ${
-                  isActive('/create')
-                    ? 'bg-[#0F172A] text-white'
-                    : 'bg-[#0F172A]/8 text-[#0F172A] hover:bg-[#0F172A]/15'
-                }`}
-                aria-label="Déposer un objet"
-              >
-                <Plus className="size-5" />
+            {/* ── Mobile / Tablet layout ── */}
+            <div className="flex min-[840px]:hidden items-center justify-between">
+              <Link to="/" onClick={handleLogoClick} className="flex items-center">
+                <img src={logoLight} alt="Passerelle GHU" className="h-11 w-auto max-w-[220px]" />
               </Link>
 
-              {/* Hamburger */}
-              <button
-                onClick={() => setMobileMenuOpen((v) => !v)}
-                className="size-10 flex items-center justify-center rounded-xl text-[#0F172A] hover:bg-black/5 transition-all"
-                aria-label="Menu"
-              >
-                {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-              </button>
+              <div className="flex items-center gap-2">
+                {/* "+" always visible */}
+                <Link
+                  to="/create"
+                  className={`size-10 flex items-center justify-center rounded-xl transition-all ${
+                    isActive('/create')
+                      ? 'bg-[#0F172A] text-white'
+                      : 'bg-[#0F172A]/8 text-[#0F172A] hover:bg-[#0F172A]/15'
+                  }`}
+                  aria-label="Déposer un objet"
+                >
+                  <Plus className="size-5" />
+                </Link>
+
+                <Link
+                  to="/favorites"
+                  aria-label="Favoris"
+                  className={`h-10 w-10 shrink-0 flex items-center justify-center rounded-xl transition-all ${
+                    isActive('/favorites')
+                      ? 'bg-[#0F172A] text-white'
+                      : 'bg-[#FFF1F5] text-[#E11D48] hover:bg-[#FFE4EC]'
+                  }`}
+                >
+                  <Heart className={`size-4 ${isActive('/favorites') ? 'fill-current' : ''}`} />
+                </Link>
+
+                {/* Hamburger */}
+                <button
+                  onClick={() => setMobileMenuOpen((v) => !v)}
+                  className="size-10 flex items-center justify-center rounded-xl text-[#0F172A] hover:bg-black/5 transition-all"
+                  aria-label="Menu"
+                >
+                  {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -310,7 +331,7 @@ export default function Root() {
               mobileMenuOpen ? 'mt-3 max-h-[420px] translate-y-0 opacity-100' : 'max-h-0 -translate-y-2 opacity-0'
             }`}
           >
-            <div className="border-t border-[#E5E5E4] pt-3">
+            <div className="border-t border-[#E5E5E4] px-4 pb-4 pt-3 sm:px-8">
               <nav className="flex flex-col gap-1 pb-2">
                 <Link to="/" className={getMobileNavLinkClass('/')}>
                   <HomeIcon className="size-4 shrink-0" />
@@ -338,7 +359,7 @@ export default function Root() {
                 )}
 
                 {/* User info at bottom of menu */}
-                <div className="mt-2 pt-3 border-t border-[#E5E5E4] flex items-center gap-3 px-4 py-2">
+                <div className="mt-2 flex items-center gap-3 border-t border-[#E5E5E4] px-4 py-2 pt-3">
                   <div className="size-9 bg-[#3B82F6] rounded-full flex items-center justify-center shrink-0">
                     <span className="text-white text-[14px] font-semibold">{currentUser.name.charAt(0)}</span>
                   </div>
@@ -350,7 +371,6 @@ export default function Root() {
               </nav>
             </div>
           </div>
-
         </div>
       </header>
 
@@ -420,7 +440,7 @@ export default function Root() {
                   </h2>
                   <div className="space-y-3">
                     <Link to="/my-space" className="block text-sm text-white/88 transition-colors hover:text-white">
-                      Gérer mes favoris, demandes et dépôts
+                      Gérer mes demandes et dépôts
                     </Link>
                     <Link to="/create" className="block text-sm text-white/88 transition-colors hover:text-white">
                       Déposer du matériel

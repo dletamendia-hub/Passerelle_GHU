@@ -15,24 +15,16 @@ export default function BrowseListings() {
 
   const categoryParam = searchParams.get('category') as ItemCategory | null;
   const sectionParam = searchParams.get('section');
-  const siteParam = searchParams.get('site') || 'all';
   const dateParam = searchParams.get('date') || 'all';
 
   const availableListings = mockListings.filter((listing) => listing.status === 'published');
-  const siteOptions = [...new Set(
-    availableListings
-      .map((listing) => listing.site || listing.author?.site)
-      .filter((site): site is string => Boolean(site))
-  )].sort((a, b) => a.localeCompare(b));
-
   const filteredListings = availableListings.filter((listing) => {
     const matchesCategory = categoryParam ? listing.category === categoryParam : true;
-    const matchesSite = siteParam === 'all' || (listing.site || listing.author?.site) === siteParam;
     const daysSincePublished = Math.floor((Date.now() - listing.createdAt.getTime()) / (1000 * 60 * 60 * 24));
     const matchesDate = dateParam === 'all'
       || (dateParam === '7' && daysSincePublished <= 7)
       || (dateParam === '30' && daysSincePublished <= 30);
-    return matchesCategory && matchesSite && matchesDate;
+    return matchesCategory && matchesDate;
   });
 
   const listings = sectionParam === 'newest'
@@ -77,7 +69,7 @@ export default function BrowseListings() {
 
   useEffect(() => {
     setFiltersOpen(false);
-  }, [siteParam, dateParam]);
+  }, [dateParam]);
 
   useEffect(() => {
     if (!filtersOpen) {
@@ -112,18 +104,6 @@ export default function BrowseListings() {
     navigate('/');
   };
 
-  const handleSiteChange = (site: string) => {
-    const nextSearchParams = new URLSearchParams(searchParams);
-
-    if (site === 'all') {
-      nextSearchParams.delete('site');
-    } else {
-      nextSearchParams.set('site', site);
-    }
-
-    setSearchParams(nextSearchParams);
-  };
-
   const handleDateChange = (date: string) => {
     const nextSearchParams = new URLSearchParams(searchParams);
 
@@ -138,12 +118,11 @@ export default function BrowseListings() {
 
   const clearFilters = () => {
     const nextSearchParams = new URLSearchParams(searchParams);
-    nextSearchParams.delete('site');
     nextSearchParams.delete('date');
     setSearchParams(nextSearchParams);
   };
 
-  const activeFilterCount = (siteParam !== 'all' ? 1 : 0) + (dateParam !== 'all' ? 1 : 0);
+  const activeFilterCount = dateParam !== 'all' ? 1 : 0;
 
   const renderListingCard = (listing: Listing) => (
     <Link
@@ -223,16 +202,6 @@ export default function BrowseListings() {
             <p className="text-sm sm:text-base text-[#71717A] mt-2">{pageDescription}</p>
             {activeFilterCount > 0 && (
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                {siteParam !== 'all' && (
-                  <button
-                    type="button"
-                    onClick={() => handleSiteChange('all')}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[#0F172A] bg-white px-3 py-1.5 text-xs font-medium text-[#0F172A] hover:bg-[#F4F4F5] transition-colors"
-                  >
-                    <span className="truncate max-w-[220px]">Établissement : {siteParam}</span>
-                    <X className="size-3.5" />
-                  </button>
-                )}
                 {dateParam !== 'all' && (
                   <button
                     type="button"
@@ -294,23 +263,6 @@ export default function BrowseListings() {
                       </button>
                     </div>
                   )}
-                  <div>
-                    <label className="block text-sm font-semibold text-[#0F172A] mb-2 tracking-wide">ÉTABLISSEMENT</label>
-                    <div className="relative">
-                      <select
-                        value={siteParam}
-                        onChange={(e) => handleSiteChange(e.target.value)}
-                        className="w-full px-4 pr-10 py-3 border-2 border-[#E5E5E4] rounded-xl text-[15px] bg-white focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent transition-all appearance-none"
-                      >
-                        <option value="all">Tous les établissements</option>
-                        {siteOptions.map((site) => (
-                          <option key={site} value={site}>{site}</option>
-                        ))}
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-5 -translate-y-1/2 text-[#71717A]" />
-                    </div>
-                  </div>
-
                   <div>
                     <label className="block text-sm font-semibold text-[#0F172A] mb-2 tracking-wide">DATE D’AJOUT</label>
                     <div className="relative">

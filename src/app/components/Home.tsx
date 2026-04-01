@@ -496,7 +496,7 @@ export default function Home() {
 
       {/* Search — sticky input only */}
       <div
-        className="sticky top-[var(--sticky-header-offset,72px)] min-[840px]:top-[var(--sticky-header-offset-desktop,100px)] z-[60] px-4 pb-0 transition-[top] duration-300 sm:px-8"
+        className="sticky top-[var(--sticky-header-offset,72px)] min-[840px]:top-[var(--sticky-header-offset-desktop,100px)] z-[60] px-4 pb-0 transition-[top] duration-200 ease-out sm:px-8 min-[840px]:duration-300"
       >
         <div className="mx-auto max-w-[1020px]">
           <div ref={searchPanelRef} className="relative -mx-2 w-[calc(100%+16px)] lg:mx-0 lg:w-full">
@@ -537,7 +537,29 @@ export default function Home() {
                 <div className={`mx-auto mb-2.5 flex size-10 items-center justify-center rounded-full ${categoryStyle.wrapper}`}>
                   <CategoryIcon className={`size-[18px] ${categoryStyle.icon}`} />
                 </div>
-                <div className="text-[13px] font-medium leading-tight">{label}</div>
+                <div className="text-[13px] font-medium leading-tight">
+                  {key === 'mobilier_bureau' ? (
+                    <>
+                      Mobilier de
+                      <br />
+                      bureau
+                    </>
+                  ) : key === 'equipement_medical' ? (
+                    <>
+                      Équipement
+                      <br />
+                      médical
+                    </>
+                  ) : key === 'mobilier_medical' ? (
+                    <>
+                      Mobilier
+                      <br />
+                      médical
+                    </>
+                  ) : (
+                    label
+                  )}
+                </div>
               </Link>
               );
             })}

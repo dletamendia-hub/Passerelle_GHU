@@ -1,38 +1,23 @@
-import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
-import { Package, Send, Calendar, MapPin, Heart, FolderOpen, Wrench, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
+import { Link } from 'react-router';
+import { Package, Send, Calendar, MapPin, FolderOpen, Wrench, ChevronDown } from 'lucide-react';
 import { mockListings, mockRequests, currentUser } from '../mock-data';
 import { brokenConditionLabels, categoryLabels, requestStatusLabels } from '../types';
 import StatusBadge from './StatusBadge';
-import { useFavorites } from '../hooks/useFavorites';
 import { useDeposits } from '../hooks/useDeposits';
 
 export default function MySpace() {
-  const [searchParams] = useSearchParams();
-  const requestedTab = searchParams.get('tab');
-  const initialTab: 'deposits' | 'requests' | 'favorites' =
-    requestedTab === 'favorites' || requestedTab === 'requests' || requestedTab === 'deposits'
-      ? requestedTab
-      : 'favorites';
-  const [activeTab, setActiveTab] = useState<'deposits' | 'requests' | 'favorites'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'deposits' | 'requests'>('requests');
   const [transferSectionOpen, setTransferSectionOpen] = useState(true);
   const [brokenSectionOpen, setBrokenSectionOpen] = useState(true);
-  const { favoriteIds, toggleFavorite } = useFavorites();
   const { deposits } = useDeposits();
 
   const myListings = mockListings.filter(l => l.authorId === currentUser.id);
   const myRequests = mockRequests.filter(r => r.requesterId === currentUser.id);
-  const favoriteListings = mockListings.filter((listing) => favoriteIds.includes(listing.id));
   const myDeposits = deposits.filter((deposit) => deposit.userId === currentUser.id);
   const transferDeposits = myDeposits.filter((deposit) => deposit.mode === 'donation');
   const brokenDeposits = myDeposits.filter((deposit) => deposit.mode === 'broken');
   const getDepositPhoto = (deposit: (typeof myDeposits)[number]) => deposit.photos?.[0] ?? deposit.photo ?? null;
-
-  useEffect(() => {
-    if (requestedTab === 'favorites' || requestedTab === 'requests' || requestedTab === 'deposits') {
-      setActiveTab(requestedTab);
-    }
-  }, [requestedTab]);
 
   return (
     <div className="max-w-[1040px] mx-auto px-4 sm:px-8 pt-24 sm:pt-32 pb-12">
@@ -46,7 +31,7 @@ export default function MySpace() {
           Mon espace
         </h1>
         <p className="text-[#71717A]" style={{ fontSize: 'clamp(14px, 2vw, 18px)' }}>
-          Gérez vos dépôts, vos favoris et suivez vos demandes de transfert
+          Gérez vos dépôts et suivez vos demandes de transfert
         </p>
       </div>
 
@@ -71,17 +56,6 @@ export default function MySpace() {
 
       {/* Tabs — flex-1 so they always stay on one line */}
       <div className="flex gap-2 mb-6 sm:mb-8">
-        <button
-          onClick={() => setActiveTab('favorites')}
-          className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-3 rounded-lg font-medium transition-colors text-sm sm:text-base ${
-            activeTab === 'favorites'
-              ? 'bg-[#0F172A] text-white'
-              : 'bg-white text-[#71717A] hover:bg-[#F4F4F5] border border-[#E5E5E4]'
-          }`}
-        >
-          <Heart className="size-4 flex-shrink-0" />
-          Favoris
-        </button>
         <button
           onClick={() => setActiveTab('requests')}
           className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-3 rounded-lg font-medium transition-colors text-sm sm:text-base ${
@@ -307,91 +281,6 @@ export default function MySpace() {
               </div>
             </section>
           </div>
-        </div>
-      )}
-
-      {/* ── Favoris ── */}
-      {activeTab === 'favorites' && (
-        <div>
-          {favoriteListings.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-xl border border-[#E5E5E4]">
-              <div className="inline-block p-4 bg-[#FFF1F5] rounded-full mb-4">
-                <Heart className="size-8 text-[#E11D48]" />
-              </div>
-              <h3 className="text-xl font-semibold text-[#0F172A] mb-2">Aucun favori pour le moment</h3>
-              <p className="text-[#71717A] mb-6">Ajoutez des articles avec le coeur depuis le catalogue ou la fiche produit</p>
-              <Link
-                to="/"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#3B82F6] text-white rounded-lg font-medium hover:bg-[#2563EB] transition-colors"
-              >
-                Voir le catalogue
-              </Link>
-            </div>
-          ) : (
-            <div className="divide-y divide-[#E5E5E4] border border-[#E5E5E4] rounded-xl overflow-hidden bg-white">
-              {favoriteListings.map((listing) => (
-                <Link
-                  key={listing.id}
-                  to={`/listing/${listing.id}`}
-                  className="flex gap-3 sm:gap-5 p-3 sm:p-5 hover:bg-[#F8F8F7] transition-colors group"
-                >
-                  <div
-                    className="flex-shrink-0 rounded-lg overflow-hidden bg-[#F4F4F5]"
-                    style={{ width: 'clamp(68px, 14vw, 120px)', aspectRatio: '4/3' }}
-                  >
-                    <img
-                      src={listing.photos[0]}
-                      alt={listing.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-
-                  <div className="flex-1 min-w-0 flex flex-col justify-center">
-                    <div className="flex items-start gap-3 mb-1 flex-wrap">
-                      <div className="flex items-center gap-2 flex-wrap min-w-0">
-                        <StatusBadge status={listing.status} />
-                        <span className="text-xs text-[#71717A]">{categoryLabels[listing.category]}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          toggleFavorite(listing.id);
-                        }}
-                        className="ml-auto inline-flex size-9 items-center justify-center rounded-full border border-[#FBCFE8] bg-[#FFF1F5] text-[#E11D48] transition-all"
-                        aria-label="Retirer des favoris"
-                      >
-                        <Heart className="size-4 fill-current" />
-                      </button>
-                      <span className="hidden sm:flex items-center gap-1 text-xs text-[#71717A] flex-shrink-0">
-                        <Calendar className="size-3" />
-                        {new Date(listing.createdAt).toLocaleDateString('fr-FR')}
-                      </span>
-                    </div>
-
-                    <h3 className="font-semibold text-[#0F172A] truncate mb-1" style={{ fontSize: 'clamp(13px, 2vw, 17px)' }}>
-                      {listing.title}
-                    </h3>
-
-                    <p className="hidden sm:block text-xs text-[#71717A] line-clamp-1 mb-2">
-                      {listing.description}
-                    </p>
-
-                    <div className="flex items-center gap-3 text-xs text-[#71717A]">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="size-3" />
-                        <span className="truncate max-w-[120px] sm:max-w-none">{listing.location}</span>
-                      </span>
-                      <span className="flex-shrink-0">
-                        Qté&nbsp;: <span className="font-medium text-[#0F172A]">{listing.quantity}</span>
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
         </div>
       )}
 

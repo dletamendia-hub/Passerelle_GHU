@@ -7,6 +7,7 @@ import MySpace from "./components/MySpace";
 import ValidationQueue from "./components/ValidationQueue";
 import AdminDashboard from "./components/AdminDashboard";
 import BrowseListings from "./components/BrowseListings";
+import FavoritesPage from "./components/FavoritesPage";
 
 const routes = [
   {
@@ -20,6 +21,7 @@ const routes = [
       { path: "validation", Component: ValidationQueue },
       { path: "admin", Component: AdminDashboard },
       { path: "browse", Component: BrowseListings },
+      { path: "favorites", Component: FavoritesPage },
     ],
   },
 ];
