@@ -1,4 +1,4 @@
-import { Upload, X, ChevronDown, Lightbulb } from 'lucide-react';
+import { Upload, X, ChevronDown, Lightbulb, ListChecks, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { brokenConditionLabels, categoryLabels, conditionLabels, type DepositRecord, type ItemCategory } from '../types';
@@ -26,6 +26,18 @@ export default function CreateListing() {
   const [tipsOpen, setTipsOpen] = useState(false);
   const mobileFooterSentinelRef = useRef<HTMLDivElement | null>(null);
   const [hideMobileActionBar, setHideMobileActionBar] = useState(false);
+
+  const compactTips = submissionMode === 'donation'
+    ? [
+        'Ajoutez 1 à 3 photos nettes du matériel',
+        'Décrivez brièvement l’état, les accessoires et les dimensions utiles',
+        'Précisez une localisation et un contact direct pour le retrait',
+      ]
+    : [
+        'Ajoutez une photo nette du matériel endommagé',
+        'Résumez la panne, la casse ou les pièces manquantes',
+        'Indiquez la localisation et le bon contact pour la suite',
+      ];
 
   useEffect(() => {
     const sentinel = mobileFooterSentinelRef.current;
@@ -106,6 +118,25 @@ export default function CreateListing() {
   // ── Shared form fields ──────────────────────────────────────────────
   const formFields = (
     <form id="create-form" onSubmit={handleSubmit} className="space-y-6">
+      <section className="rounded-2xl border border-[#DBEAFE] bg-[#F8FBFF] p-4 sm:p-5">
+        <div className="mb-3 flex items-center gap-2.5">
+          <div className="flex size-9 items-center justify-center rounded-full bg-[#EFF6FF] text-[#3B82F6]">
+            <Lightbulb className="size-4" />
+          </div>
+          <h3 className="text-sm font-semibold text-[#0F172A] sm:text-base">
+            {submissionMode === 'donation' ? 'Bien préparer votre dépôt' : 'Bien préparer votre déclaration'}
+          </h3>
+        </div>
+        <ul className="space-y-2 text-sm text-[#52525B]">
+          {compactTips.map((tip, index) => (
+            <li key={index} className="flex gap-2">
+              <span className="font-bold text-[#3B82F6]">•</span>
+              <span>{tip}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* Photo upload */}
       <div>
         <label className="block text-sm font-medium text-[#0F172A] mb-2">
@@ -316,74 +347,51 @@ export default function CreateListing() {
     </form>
   );
 
-  const tips = submissionMode === 'donation'
-    ? [
-        'Ajoutez une photo claire et bien cadrée du matériel',
-        'Soyez précis dans votre description (état, accessoires, particularités)',
-        'Indiquez les dimensions si c\'est du mobilier',
-        'Précisez la localisation exacte pour faciliter la récupération',
-        'Laissez vos coordonnées complètes pour être facilement joignable',
-      ]
-    : [
-        'Ajoutez une photo nette du matériel endommagé',
-        'Décrivez précisément la panne ou la casse constatée',
-        'Mentionnez les risques éventuels ou pièces manquantes',
-        'Indiquez la localisation exacte pour organiser la suite de la procédure',
-        'Laissez un contact direct si une vérification sur place est nécessaire',
-      ];
-
   const workflowSteps = submissionMode === 'donation'
     ? [
-        { n: 1, color: '#3B82F6', title: 'Publication', sub: 'Votre annonce est visible immédiatement' },
-        { n: 2, color: '#3B82F6', title: 'Demande de transfert', sub: 'Un agent demande le bien' },
-        { n: 3, color: '#3B82F6', title: 'Validation achat', sub: 'Vérification de l\'amortissement' },
-        { n: 4, color: '#10B981', title: 'Transfert', sub: 'Le matériel change de service' },
+        { n: 1, title: 'Publication', sub: 'Votre annonce est visible immédiatement' },
+        { n: 2, title: 'Demande de transfert', sub: 'Un agent demande le bien' },
+        { n: 3, title: 'Validation achat', sub: 'Vérification de l\'amortissement' },
+        { n: 4, title: 'Transfert', sub: 'Le matériel change de service' },
       ]
     : [
-        { n: 1, color: '#F59E0B', title: 'Déclaration', sub: 'Le matériel cassé est signalé via ce formulaire' },
-        { n: 2, color: '#F59E0B', title: 'Qualification', sub: 'Le besoin de casse est vérifié par la procédure dédiée' },
-        { n: 3, color: '#EF4444', title: 'Sortie du parc', sub: 'Le matériel n’est pas publié dans les annonces' },
-        { n: 4, color: '#64748B', title: 'Traitement', sub: 'La mise au rebut suit le circuit interne adapté' },
+        { n: 1, title: 'Déclaration', sub: 'Le matériel cassé est signalé via ce formulaire' },
+        { n: 2, title: 'Qualification', sub: 'Le besoin de casse est vérifié par la procédure dédiée' },
+        { n: 3, title: 'Sortie du parc', sub: 'Le matériel n’est pas publié dans les annonces' },
+        { n: 4, title: 'Traitement', sub: 'La mise au rebut suit le circuit interne adapté' },
       ];
 
-  const renderTipsSections = (compact = false) => (
-    <>
-      <section className={compact ? '' : 'bg-white border border-[#E5E5E4] rounded-2xl p-6 sm:p-8'}>
-        <h3 className="mb-4 text-lg font-semibold text-[#0F172A] sm:text-xl">
-          {submissionMode === 'donation' ? 'Conseils pour votre dépôt' : 'Conseils pour la déclaration de casse'}
-        </h3>
-        <ul className="space-y-3 text-sm text-[#52525B]">
-          {tips.map((tip, i) => (
-            <li key={i} className="flex gap-2">
-              <span className="font-bold text-[#3B82F6]">•</span>
-              <span>{tip}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className={compact ? 'mt-6 border-t border-[#E5E5E4] pt-6' : 'mt-4 rounded-2xl border border-[#E5E5E4] bg-white p-6 sm:mt-6 sm:p-8'}>
-        <h3 className="mb-4 text-base font-semibold text-[#0F172A] sm:text-lg">
-          {submissionMode === 'donation' ? 'Workflow de validation' : 'Workflow de mise au rebut'}
-        </h3>
-        <div className="space-y-4">
-          {workflowSteps.map(({ n, color, title, sub }) => (
-            <div key={n} className="flex gap-3">
-              <div
-                className="flex size-8 flex-shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
-                style={{ backgroundColor: color }}
-              >
-                {n}
-              </div>
-              <div>
-                <div className="font-medium text-[#0F172A]">{title}</div>
-                <div className="text-sm text-[#71717A]">{sub}</div>
-              </div>
-            </div>
-          ))}
+  const renderWorkflowSection = (compact = false) => (
+    <section className={compact ? '' : 'rounded-2xl border border-[#E5E5E4] bg-white p-6 sm:p-8'}>
+      {!compact && (
+        <div className="mb-6 flex items-center justify-center gap-3 text-center">
+          <div className={`flex size-10 items-center justify-center rounded-full ${
+            submissionMode === 'donation' ? 'bg-[#EFF6FF] text-[#3B82F6]' : 'bg-[#FFF7ED] text-[#F59E0B]'
+          }`}>
+            {submissionMode === 'donation' ? <ListChecks className="size-5" /> : <Trash2 className="size-5" />}
+          </div>
+          <h3 className="text-base font-semibold text-[#0F172A] sm:text-lg">
+            {submissionMode === 'donation' ? 'Étapes de validation' : 'Étapes de mise au rebut'}
+          </h3>
         </div>
-      </section>
-    </>
+      )}
+      <div className="relative space-y-4">
+        <div className="absolute left-4 top-4 bottom-4 w-px bg-[#DCE7FB]" />
+        {workflowSteps.map(({ n, title, sub }) => (
+          <div key={n} className="relative flex gap-3">
+            <div
+              className="relative z-[1] flex size-8 flex-shrink-0 items-center justify-center rounded-full bg-[#0F172A] text-sm font-semibold text-white ring-4 ring-white"
+            >
+              {n}
+            </div>
+            <div className="min-w-0 flex-1 pt-0.5">
+              <div className="text-[15px] font-medium leading-5 text-[#0F172A] sm:text-base">{title}</div>
+              <div className="text-sm text-[#71717A]">{sub}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 
   return (
@@ -431,7 +439,7 @@ export default function CreateListing() {
           </div>
         </div>
 
-        {/* ── Mobile collapsible tips ── */}
+        {/* ── Mobile collapsible workflow ── */}
         <div className="sm:hidden mb-6">
           <div className="overflow-hidden rounded-2xl border-2 border-[#BFDBFE] bg-[#EFF6FF]">
             <button
@@ -443,7 +451,9 @@ export default function CreateListing() {
             >
               <div className="flex items-center gap-2.5">
                 <Lightbulb className="size-4 text-[#3B82F6]" />
-                <span className="text-sm font-semibold text-[#1E3A8A]">Conseils</span>
+                <span className="text-sm font-semibold text-[#1E3A8A]">
+                  {submissionMode === 'donation' ? 'Les étapes de validation' : 'Les étapes de mise au rebut'}
+                </span>
               </div>
               <ChevronDown
                 className="size-4 text-[#71717A] transition-transform duration-200"
@@ -453,20 +463,20 @@ export default function CreateListing() {
 
             {tipsOpen && (
               <div className="bg-white p-6">
-                {renderTipsSections(true)}
+                {renderWorkflowSection(true)}
               </div>
             )}
           </div>
         </div>
 
         {/* ── Desktop 12-col layout — hidden on mobile ── */}
-        <div className="hidden sm:grid grid-cols-12 gap-12">
+        <div className="hidden sm:grid grid-cols-12 gap-10 lg:gap-12">
           <div className="col-span-7">
             {formFields}
           </div>
           <div className="col-span-5">
-            <div className="sticky top-[calc(var(--sticky-header-offset-desktop,100px)+32px)] z-10 transition-[top] duration-300">
-              {renderTipsSections()}
+            <div className="sticky top-[calc(var(--sticky-header-offset-desktop,100px)+32px)] z-10 pt-0 transition-[top] duration-300">
+              {renderWorkflowSection()}
             </div>
           </div>
         </div>

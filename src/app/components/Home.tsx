@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { Link, useLocation } from 'react-router';
-import { Search, MapPin, Package, TrendingUp, Building2, BarChart3, Heart, ArrowRight, BriefcaseBusiness, BedSingle, Monitor, Stethoscope, Archive, Shapes } from 'lucide-react';
+import { Search, MapPin, Package, TrendingUp, Building2, BarChart3, Heart, ArrowRight, BriefcaseBusiness, BedSingle, Monitor, Stethoscope, Archive, Shapes, X } from 'lucide-react';
 import { mockListings } from '../mock-data';
 import { categoryBadgeLabels, categoryLabels, type ItemCategory, type Listing } from '../types';
 import { useFavorites } from '../hooks/useFavorites';
@@ -161,16 +161,26 @@ export default function Home() {
   const leftScale = heroReady ? 1 : 1.045;
   const rightScale = heroReady ? 1 : 1.055;
 
-  const filteredListings = availableListings.filter((listing) => {
-    const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      listing.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
-  });
+  const query = searchQuery.trim().toLowerCase();
 
-  const searchResults = searchQuery.trim().length > 0
+  const categorySuggestions = query.length > 0
+    ? Object.entries(categoryLabels)
+        .map(([key, label]) => {
+          const badgeLabel = categoryBadgeLabels[key as ItemCategory];
+          let score = 0;
+          if (label.toLowerCase().startsWith(query)) score += 6;
+          else if (label.toLowerCase().includes(query)) score += 4;
+          if (badgeLabel.toLowerCase().includes(query)) score += 2;
+          return { key: key as ItemCategory, label, score };
+        })
+        .filter((item) => item.score > 0)
+        .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label))
+        .slice(0, 3)
+    : [];
+
+  const searchResults = query.length > 0
     ? [...availableListings]
         .map((listing) => {
-          const query = searchQuery.trim().toLowerCase();
           const title = listing.title.toLowerCase();
           const description = listing.description.toLowerCase();
           const site = (listing.site || listing.author?.site || '').toLowerCase();
@@ -193,7 +203,7 @@ export default function Home() {
         .slice(0, 5)
     : [];
 
-  const recentListings = [...filteredListings]
+  const recentListings = [...availableListings]
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
     .slice(0, 4);
 
@@ -201,7 +211,7 @@ export default function Home() {
     .map(([key, label]) => ({
       key,
       label,
-      listings: filteredListings.filter((listing) => listing.category === key),
+      listings: availableListings.filter((listing) => listing.category === key),
     }))
     .filter((section) => section.listings.length > 0);
 
@@ -279,44 +289,85 @@ export default function Home() {
   };
 
   const renderSearchSuggestions = () => {
-    if (!searchResultsOpen || searchQuery.trim().length === 0) {
+    if (!searchResultsOpen || query.length === 0) {
       return null;
     }
 
     return (
       <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-[90] overflow-hidden rounded-2xl border border-[#E5E5E4] bg-white shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
-        {searchResults.length > 0 ? (
-          <div className="divide-y divide-[#E5E5E4]">
-            {searchResults.map(({ listing }) => (
-              <Link
-                key={listing.id}
-                to={`/listing/${listing.id}`}
-                state={getNavigationState()}
-                onClick={() => setSearchResultsOpen(false)}
-                className="flex items-center gap-3 px-3 py-3 transition-colors hover:bg-[#F8F8F7]"
-              >
-                <div className="h-14 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-[#F4F4F5]">
-                  <img src={listing.photos[0]} alt={listing.title} className="h-full w-full object-cover" />
+        {categorySuggestions.length > 0 || searchResults.length > 0 ? (
+          <div>
+            {categorySuggestions.length > 0 && (
+              <div className="border-b border-[#E5E5E4] p-2">
+                <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#71717A]">
+                  Catégories
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="mb-1 flex items-center gap-2">
-                    <span className="inline-flex items-center rounded-full bg-[#F4F4F5] px-2 py-0.5 text-[10px] font-semibold text-[#0F172A]">
-                      {categoryBadgeLabels[listing.category]}
-                    </span>
-                    <span className="truncate text-[11px] text-[#71717A]">{listing.site || listing.author?.site}</span>
-                  </div>
-                  <div className="truncate text-sm font-semibold text-[#0F172A]">{listing.title}</div>
-                  <div className="mt-0.5 flex items-center gap-1.5 text-xs text-[#71717A]">
-                    <MapPin className="size-3.5" />
-                    <span className="truncate">{listing.location}</span>
-                  </div>
+                <div className="space-y-1">
+                  {categorySuggestions.map((category) => {
+                    const CategoryIcon = categoryIcons[category.key];
+                    const categoryStyle = categoryIconStyles[category.key];
+
+                    return (
+                      <Link
+                        key={category.key}
+                        to={getBrowseLink({ category: category.key })}
+                        state={getNavigationState()}
+                        onClick={() => setSearchResultsOpen(false)}
+                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F8F8F7]"
+                      >
+                        <div className={`flex size-10 items-center justify-center rounded-full ${categoryStyle.wrapper}`}>
+                          <CategoryIcon className={`size-[18px] ${categoryStyle.icon}`} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-[#0F172A]">{category.label}</div>
+                          <div className="text-xs text-[#71717A]">Voir tous les articles de cette catégorie</div>
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
-              </Link>
-            ))}
+              </div>
+            )}
+
+            {searchResults.length > 0 && (
+              <div className="p-2">
+                <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#71717A]">
+                  Articles
+                </div>
+                <div className="divide-y divide-[#E5E5E4]">
+                  {searchResults.map(({ listing }) => (
+                    <Link
+                      key={listing.id}
+                      to={`/listing/${listing.id}`}
+                      state={getNavigationState()}
+                      onClick={() => setSearchResultsOpen(false)}
+                      className="flex items-center gap-3 px-3 py-3 transition-colors hover:bg-[#F8F8F7]"
+                    >
+                      <div className="h-14 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-[#F4F4F5]">
+                        <img src={listing.photos[0]} alt={listing.title} className="h-full w-full object-cover" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1 flex items-center gap-2">
+                          <span className="inline-flex items-center rounded-full bg-[#F4F4F5] px-2 py-0.5 text-[10px] font-semibold text-[#0F172A]">
+                            {categoryBadgeLabels[listing.category]}
+                          </span>
+                          <span className="truncate text-[11px] text-[#71717A]">{listing.site || listing.author?.site}</span>
+                        </div>
+                        <div className="truncate text-sm font-semibold text-[#0F172A]">{listing.title}</div>
+                        <div className="mt-0.5 flex items-center gap-1.5 text-xs text-[#71717A]">
+                          <MapPin className="size-3.5" />
+                          <span className="truncate">{listing.location}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="px-4 py-4 text-sm text-[#71717A]">
-            Aucun article pertinent trouvé.
+            Aucune suggestion trouvée.
           </div>
         )}
       </div>
@@ -500,7 +551,6 @@ export default function Home() {
       >
         <div className="mx-auto max-w-[1020px]">
           <div ref={searchPanelRef} className="relative -mx-2 w-[calc(100%+16px)] lg:mx-0 lg:w-full">
-            {searchBarPinned && <div className="pointer-events-none absolute inset-x-0 -top-2 h-2 bg-[#fef9f4]" />}
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-[#71717A]" />
               <input
@@ -512,8 +562,21 @@ export default function Home() {
                   setSearchResultsOpen(true);
                 }}
                 onFocus={() => setSearchResultsOpen(true)}
-                className="w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-[12px] border border-[#0F172A] bg-white pl-12 pr-4 py-3.5 text-base sm:text-[15px] shadow-[0_14px_32px_rgba(15,23,42,0.12)] focus:outline-none focus:border-[#3B82F6] transition-colors"
+                className="w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-[12px] border border-[#0F172A] bg-white pl-12 pr-12 py-3.5 text-base sm:text-[15px] shadow-[0_14px_32px_rgba(15,23,42,0.12)] focus:outline-none focus:border-[#3B82F6] transition-colors"
               />
+              {searchQuery.trim().length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSearchResultsOpen(false);
+                  }}
+                  className="absolute right-3 top-1/2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-[#71717A] transition-colors hover:bg-[#F4F4F5] hover:text-[#0F172A]"
+                  aria-label="Effacer la recherche"
+                >
+                  <X className="size-4" />
+                </button>
+              )}
             </div>
             {renderSearchSuggestions()}
           </div>
@@ -522,7 +585,9 @@ export default function Home() {
 
       <div className="max-w-[1040px] mx-auto px-4 sm:px-8 pt-10 pb-8 sm:pt-12 lg:pt-[70px] sm:pb-12">
         <div className="mb-8 sm:mb-10">
-          <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:overflow-visible">
+          <div className="relative">
+            <div className="pointer-events-none absolute bottom-2 right-0 top-0 z-[1] w-10 bg-[linear-gradient(90deg,rgba(254,249,244,0)_0%,#fef9f4_80%)] sm:hidden" />
+            <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:overflow-visible">
             {Object.entries(categoryLabels).map(([key, label]) => {
               const CategoryIcon = categoryIcons[key as ItemCategory];
               const categoryStyle = categoryIconStyles[key as ItemCategory];
@@ -563,71 +628,56 @@ export default function Home() {
               </Link>
               );
             })}
+            </div>
           </div>
         </div>
 
-        {filteredListings.length > 0 && (
-          <div className="space-y-12 sm:space-y-14">
-            {recentListings.length > 0 && (
-              <section>
-                <div className="flex items-end justify-between gap-4 mb-5 sm:mb-6">
-                  <div>
-                    <h3 className="text-[24px] sm:text-[30px] font-bold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400 }}>Les nouveautés</h3>
-                  </div>
-                  <Link
-                    to={getBrowseLink({ section: 'newest' })}
-                    state={getNavigationState()}
-                    className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-[#E5E5E4] bg-white px-4 py-2.5 text-sm font-semibold text-[#0F172A] hover:bg-[#F4F4F5] transition-colors"
-                  >
-                    Voir tout
-                    <ArrowRight className="size-4" />
-                  </Link>
+        <div className="space-y-12 sm:space-y-14">
+          {recentListings.length > 0 && (
+            <section>
+              <div className="flex items-end justify-between gap-4 mb-5 sm:mb-6">
+                <div>
+                  <h3 className="text-[24px] sm:text-[30px] font-bold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400 }}>Les nouveautés</h3>
                 </div>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  {recentListings.map(renderListingCard)}
-                </div>
-              </section>
-            )}
+                <Link
+                  to={getBrowseLink({ section: 'newest' })}
+                  state={getNavigationState()}
+                  className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-[#E5E5E4] bg-white px-4 py-2.5 text-sm font-semibold text-[#0F172A] hover:bg-[#F4F4F5] transition-colors"
+                >
+                  Voir tout
+                  <ArrowRight className="size-4" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {recentListings.map(renderListingCard)}
+              </div>
+            </section>
+          )}
 
-            {categorySections.map((section) => (
-              <section key={section.key}>
-                <div className="flex items-end justify-between gap-4 mb-5 sm:mb-6">
-                  <div>
-                    <h3 className="text-[24px] sm:text-[30px] font-bold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400 }}>{section.label}</h3>
-                    <p className="text-sm text-[#71717A] mt-1">
-                      {section.listings.length} annonce{section.listings.length > 1 ? 's' : ''} disponible{section.listings.length > 1 ? 's' : ''}
-                    </p>
-                  </div>
-                  <Link
-                    to={getBrowseLink({ category: section.key })}
-                    state={getNavigationState()}
-                    className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-[#E5E5E4] bg-white px-4 py-2.5 text-sm font-semibold text-[#0F172A] hover:bg-[#F4F4F5] transition-colors"
-                  >
-                    Voir tout
-                    <ArrowRight className="size-4" />
-                  </Link>
+          {categorySections.map((section) => (
+            <section key={section.key}>
+              <div className="flex items-end justify-between gap-4 mb-5 sm:mb-6">
+                <div>
+                  <h3 className="text-[24px] sm:text-[30px] font-bold text-[#0F172A] leading-[1.1]" style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 400 }}>{section.label}</h3>
+                  <p className="text-sm text-[#71717A] mt-1">
+                    {section.listings.length} annonce{section.listings.length > 1 ? 's' : ''} disponible{section.listings.length > 1 ? 's' : ''}
+                  </p>
                 </div>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  {section.listings.slice(0, 4).map(renderListingCard)}
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
-
-        {filteredListings.length === 0 && (
-          <div className="text-center py-20">
-            <div className="inline-block p-6 bg-[#F4F4F5] rounded-2xl mb-6">
-              <Package className="size-12 text-[#71717A]" />
-            </div>
-            <h3 className="text-2xl font-bold text-[#0F172A] mb-3">
-              Aucun résultat trouvé
-            </h3>
-            <p className="text-[17px] text-[#71717A]">
-              Essayez de modifier vos critères de recherche
-            </p>
-          </div>
-        )}
+                <Link
+                  to={getBrowseLink({ category: section.key })}
+                  state={getNavigationState()}
+                  className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-[#E5E5E4] bg-white px-4 py-2.5 text-sm font-semibold text-[#0F172A] hover:bg-[#F4F4F5] transition-colors"
+                >
+                  Voir tout
+                  <ArrowRight className="size-4" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {section.listings.slice(0, 4).map(renderListingCard)}
+              </div>
+            </section>
+          ))}
+        </div>
       </div>
     </div>
   );
